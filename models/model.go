@@ -8,10 +8,11 @@ import (
 
 type Organization struct {
 	gorm.Model
-	Name             string `json:"name"`
-	StripeCustomerID string `json:"stripe_customer_id"` // Stripe Customer ID
-	Users            []User `gorm:"many2many:organization_users;"`
-	Email            string `json:"email" gorm:"unique"`
+	Name             string         `json:"name"`
+	Email            string         `json:"email" gorm:"unique"`
+	StripeCustomerID string         `json:"stripe_customer_id"` // Stripe Customer ID for billing
+	Users            []User         `gorm:"many2many:organization_users;"`
+	Subscriptions    []Subscription `json:"subscriptions"`
 }
 type User struct {
 	gorm.Model
@@ -34,4 +35,5 @@ type Subscription struct {
 	ProductID            uint
 	StripeSubscriptionID string `json:"stripe_subscription_id"`
 	Quantity             int    `json:"quantity"` // Number of users/seats
+	Active               bool   `json:"active"`   // Subscription active status
 }

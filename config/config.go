@@ -30,4 +30,7 @@ func InitDB() *gorm.DB {
 
 func InitStripe() {
 	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
+	if os.Getenv("STRIPE_SECRET_KEY") == "" {
+		log.Panic("STRIPE_SECRET_KEY required")
+	}
 }

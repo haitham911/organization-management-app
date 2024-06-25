@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func InviteUser(c *gin.Context) {
@@ -66,4 +67,57 @@ func VerifyMagicLink(c *gin.Context) {
 	config.DB.Model(&user).Updates(models.User{MagicLinkToken: "", MagicLinkExpiry: time.Time{}})
 
 	c.JSON(http.StatusOK, gin.H{"token": jwtToken})
+}
+func Login(c *gin.Context) {
+	var loginRequest struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	if err := c.ShouldBindJSON(&loginRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var user models.User
+	if err := config.DB.Preload("Organizations.Subscriptions").Where("email = ?", loginRequest.Email).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	if !utils.CheckPasswordHash(loginRequest.Password, user.Password) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		return
+	}
+
+	// Check if the user belongs to any organization with an active subscription
+	hasActiveSubscription := false
+	for _, org := range user.Organizations {
+		for _, sub := range org.Subscriptions {
+			if sub.Active {
+				hasActiveSubscription = true
+				break
+			}
+		}
+		if hasActiveSubscription {
+			break
+		}
+	}
+
+	if !hasActiveSubscription {
+		c.JSON(http.StatusForbidden, gin.H{"error": "User does not belong to an organization with an active subscription"})
+		return
+	}
+
+	// Generate token
+	token, err := utils.GenerateToken(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from './api';
 
 const SubscribeProduct = () => {
   const [products, setProducts] = useState([]);
@@ -9,7 +9,7 @@ const SubscribeProduct = () => {
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
-    axios.get('/api/products')
+    axios.get('/products')
       .then(response => {
         setProducts(response.data);
       })
@@ -17,7 +17,7 @@ const SubscribeProduct = () => {
         console.error('There was an error fetching the products!', error);
       });
 
-    axios.get('/api/organizations')
+    axios.get('/organizations')
       .then(response => {
         setOrganizations(response.data);
       })
@@ -28,7 +28,7 @@ const SubscribeProduct = () => {
 
   const handleSubscribe = async () => {
     try {
-      const response = await axios.post('/api/subscriptions', {
+      const response = await axios.post('/subscriptions', {
         organization_id: selectedOrganization.ID,
         product_id: selectedProduct.ID,
         quantity: quantity

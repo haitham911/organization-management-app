@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"organization-management-app/config"
 	"organization-management-app/models"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stripe/stripe-go/v72"
@@ -31,6 +33,7 @@ func CreateSubscription(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
 		return
 	}
+	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
 
 	params := &stripe.SubscriptionParams{
 		Customer: stripe.String(organization.StripeCustomerID), // Replace with actual Stripe customer ID
@@ -61,4 +64,21 @@ func GetSubscriptions(c *gin.Context) {
 	var subscriptions []models.Subscription
 	config.DB.Find(&subscriptions)
 	c.JSON(http.StatusOK, subscriptions)
+}
+
+// ActivateSubscription activates a subscription in the database.
+func ActivateSubscription(stripeSubscriptionID string) error {
+	// Find the subscription by StripeSubscriptionID
+	var subscription models.Subscription
+	if err := config.DB.Where("stripe_subscription_id = ?", stripeSubscriptionID).First(&subscription).Error; err != nil {
+		return fmt.Errorf("could not find subscription: %w", err)
+	}
+
+	// Update the subscription to active
+	subscription.Active = true
+	if err := config.DB.Save(&subscription).Error; err != nil {
+		return fmt.Errorf("could not activate subscription: %w", err)
+	}
+
+	return nil
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios from './api';
 
 const InviteUser = () => {
   const [email, setEmail] = useState('');
@@ -8,7 +8,7 @@ const InviteUser = () => {
 
   const handleInvite = async () => {
     try {
-      const response = await axios.post('/api/invite', { email, organization_id: organizationID });
+      const response = await axios.post('/invite', { email, organization_id: organizationID });
       setMessage(response.data.message);
     } catch (error) {
       setMessage('Failed to send invitation');

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from './api';
 
 const Organizations = () => {
   const [organizations, setOrganizations] = useState([]);
 
   useEffect(() => {
-    axios.get('/api/organizations')
+    axios.get('/organizations')
       .then(response => {
         setOrganizations(response.data);
       })

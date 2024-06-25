@@ -8,6 +8,7 @@ import Subscriptions from './components/Subscriptions';
 import Users from './components/Users';
 import SubscribeProduct from './components/SubscribeProduct';
 import Navigation from './components/Navigation'; // Import Navigation component
+import AddOrganization from './components/AddOrganization';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/invite" element={<InviteUser />} />
           <Route path="/magic-link" element={<MagicLink />} />
           <Route path="/organizations" element={<Organizations />} />
+          <Route path="/add-organization" element={<AddOrganization/>} />
           <Route path="/users" element={<Users />} />
           <Route path="/products" element={<Products />} />
           <Route path="/subscriptions" element={<Subscriptions />} />

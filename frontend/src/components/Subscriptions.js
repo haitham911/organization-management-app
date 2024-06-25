@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from './api';
 
 const Subscriptions = () => {
   const [subscriptions, setSubscriptions] = useState([]);
 
   useEffect(() => {
-    axios.get('/api/subscriptions')
+    axios.get('/subscriptions')
       .then(response => {
         setSubscriptions(response.data);
       })

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import axios from 'axios';
+import axios from './api';
 
 const useQuery = () => {
   return new URLSearchParams(useLocation().search);
@@ -14,7 +14,7 @@ const MagicLink = () => {
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        const response = await axios.get(`/api/verify-magic-link?token=${token}`);
+        const response = await axios.get(`/verify-magic-link?token=${token}`);
         localStorage.setItem('token', response.data.token);
         setMessage('Successfully logged in');
       } catch (error) {

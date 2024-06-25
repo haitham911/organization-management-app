@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"organization-management-app/config"
 	"organization-management-app/models"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stripe/stripe-go"
@@ -16,6 +18,7 @@ func CreateOrganization(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
 
 	// Create Stripe Customer
 	params := &stripe.CustomerParams{
@@ -24,6 +27,7 @@ func CreateOrganization(c *gin.Context) {
 	}
 	stripeCustomer, err := customer.New(params)
 	if err != nil {
+		log.Println(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create Stripe customer"})
 		return
 	}
