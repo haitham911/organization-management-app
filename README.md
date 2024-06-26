@@ -16,6 +16,8 @@ This project is a web application that manages organizations as vendors providin
 6. **Stripe Integration**:
     - **Creating Products with Pre-set Price Models**: Products are created in Stripe with predefined price models. This allows organizations to subscribe to these products with a fixed pricing structure. For more information on Stripe's pricing models, refer to the [Stripe Pricing Models Documentation](https://docs.stripe.com/products-prices/pricing-models).
     - **Adding Stripe Webhook Endpoints**: Webhook endpoints are added to handle Stripe events such as payment successes, subscription updates, and more. This ensures that the application stays in sync with the latest payment and subscription statuses from Stripe.
+    Webhook endpoints :baser_url/api/webhook
+
 
 ## Features
 
