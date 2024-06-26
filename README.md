@@ -3,17 +3,19 @@
 This project is a web application that manages organizations as vendors providing products. The application includes features such as subscriptions, user management, and integration with Stripe for payment processing.
 ## Business Logic
 
-1. **User Creation**: When a new user is created, the system first checks if the associated organization has enough subscription capacity. The user is then created and linked to the organization and the relevant Stripe subscription.
+1. - **Subscribe to Products**: Organizations can subscribe to products and manage their subscriptions.
 
-2. **Subscription Creation**: When an organization subscribes to a product, a subscription is created in Stripe. The subscription details, including the quantity, are stored in the database.
+2. - **User Creation**: When a new user is created, the system first checks if the associated organization has enough subscription capacity. The user is then created and linked to the organization and the relevant Stripe subscription.
 
-3. **Subscription Validation**: Before adding a new user to an organization, the system checks if the organization can add more subscriptions based on the quantity of the existing subscriptions.
+3. **Subscription Creation**: When an organization subscribes to a product, a subscription is created in Stripe. The subscription details, including the quantity, are stored in the database.
 
-4. **Payment Handling**: Payment methods are attached to organizations when subscriptions are created. Stripe webhooks are used to handle events such as payment successes and subscription updates.
+4. **Subscription Validation**: Before adding a new user to an organization, the system checks if the organization can add more subscriptions based on the quantity of the existing subscriptions.
 
-5. **Product Access Check**: The system validates if users within an organization have access to a product based on their subscriptions.
+5. **Payment Handling**: Payment methods are attached to organizations when subscriptions are created. Stripe webhooks are used to handle events such as payment successes and subscription updates.
 
-6. **Stripe Integration**:
+6. **Product Access Check**: The system validates if users within an organization have access to a product based on their subscriptions.
+
+7. **Stripe Integration**:
     - **Creating Products with Pre-set Price Models**: Products are created in Stripe with predefined price models. This allows organizations to subscribe to these products with a fixed pricing structure. For more information on Stripe's pricing models, refer to the [Stripe Pricing Models Documentation](https://docs.stripe.com/products-prices/pricing-models).
     - **Adding Stripe Webhook Endpoints**: Webhook endpoints are added to handle Stripe events such as payment successes, subscription updates, and more. This ensures that the application stays in sync with the latest payment and subscription statuses from Stripe.
     Webhook endpoints :baser_url/api/webhook
