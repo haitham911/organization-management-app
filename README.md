@@ -149,8 +149,8 @@ This project is a web application that manages organizations as vendors providin
 
 ```mermaid
 graph TD
-    A[Frontend (React)]
-    B[Backend (Golang/Gin)]
+    A[Frontend React)
+    B[Backend Golang]
     C[PostgreSQL Database]
     D[Stripe API]
     
