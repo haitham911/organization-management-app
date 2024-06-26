@@ -1,154 +1,161 @@
-
 # Organization Management App
 
-This project is a full-stack application for managing organizations, users, products, and subscriptions. The backend is built with Golang using Gin and GORM, and the frontend is a React application.
-
-## Table of Contents
-
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Setup Instructions](#setup-instructions)
-- [API Endpoints](#api-endpoints)
-- [Mermaid Diagram](#mermaid-diagram)
+This project is a web application that manages organizations as vendors providing products. The application includes features such as subscriptions, user management, and integration with Stripe for payment processing.
 
 ## Features
 
-- Organization management
-- User management
-- Product management
-- Subscription management
-- Stripe integration for payments
+- **Subscribe to Products**: Organizations can subscribe to products and manage their subscriptions.
+- **User Management**: Users can be added to organizations, and their subscriptions are managed.
+- **Subscription Validation**: Checks if organizations can add more subscriptions based on their current subscription limits.
+- **Stripe Integration**: Seamless integration with Stripe for handling payments and subscriptions.
 
-## Project Structure
+## Technologies Used
 
-```
-organization-management-app/
-├── backend/
-│   ├── main.go
-│   ├── go.mod
-│   ├── go.sum
-│   ├── config/
-│   │   └── config.go
-│   ├── controllers/
-│   │   ├── organization_controller.go
-│   │   ├── subscription_controller.go
-│   │   ├── user_controller.go
-│   │   └── product_controller.go
-│   ├── models/
-│   │   ├── organization.go
-│   │   ├── subscription.go
-│   │   ├── user.go
-│   │   └── product.go
-│   ├── routes/
-│   │   ├── organization_routes.go
-│   │   ├── subscription_routes.go
-│   │   ├── user_routes.go
-│   │   └── product_routes.go
-│   ├── middlewares/
-│   │   └── auth_middleware.go
-│   ├── services/
-│   │   └── email_service.go
-│   └── utils/
-│       └── token_utils.go
-├── frontend/
-│   ├── build/
-│   ├── public/
-│   │   ├── index.html
-│   │   └── favicon.ico
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── InviteUser.js
-│   │   │   ├── MagicLink.js
-│   │   │   ├── Navigation.js
-│   │   │   ├── Navigation.css
-│   │   │   ├── Organizations.js
-│   │   │   ├── Products.js
-│   │   │   ├── Subscriptions.js
-│   │   │   ├── Users.js
-│   │   │   └── SubscribeProduct.js
-│   │   ├── App.js
-│   │   ├── index.js
-│   │   ├── api.js
-│   │   └── styles.css
-│   ├── package.json
-│   ├── README.md
-│   └── .gitignore
-└── README.md
-```
+- **Frontend**: React, Stripe Elements
+- **Backend**: Golang, Gin, GORM, PostgreSQL, Stripe API
+- **Database**: PostgreSQL
 
-## Setup Instructions
+## Prerequisites
+
+- Node.js
+- Go
+- PostgreSQL
+- Stripe Account
+
+## Setup
 
 ### Backend
 
-1. Navigate to the backend directory:
-   ```sh
-   cd backend
-   ```
+1. **Clone the repository**:
 
-2. Install dependencies:
-   ```sh
-   go mod tidy
-   ```
+    ```sh
+    git clone https://github.com/your-username/organization-management-app.git
+    cd organization-management-app
+    ```
 
-3. Run the application:
-   ```sh
-   go run main.go
-   ```
+2. **Install dependencies**:
+
+    ```sh
+    go mod download
+    ```
+
+3. **Setup PostgreSQL database**:
+
+    Create a database and update the database configuration in `config/config.go`.
+
+4. **Run the backend**:
+
+    ```sh
+    go run main.go
+    ```
 
 ### Frontend
 
-1. Navigate to the frontend directory:
-   ```sh
-   cd frontend
-   ```
+1. **Navigate to the frontend directory**:
 
-2. Install dependencies:
-   ```sh
-   npm install
-   ```
+    ```sh
+    cd src/frontend
+    ```
 
-3. Start the development server:
-   ```sh
-   npm start
-   ```
+2. **Install dependencies**:
 
-4. Build the production build:
-   ```sh
-   npm run build
-   ```
+    ```sh
+    npm install
+    ```
+
+3. **Start the frontend**:
+
+    ```sh
+    npm start
+    ```
 
 ## API Endpoints
 
-- **Organization Endpoints**:
-  - `POST /api/organizations`: Create a new organization
-  - `GET /api/organizations`: Get all organizations
+### Subscriptions
 
-- **User Endpoints**:
-  - `POST /api/users`: Create a new user
-  - `GET /api/users`: Get all users
+- **Create Subscription**: `POST /api/subscriptions`
+    - Request Body:
+      ```json
+      {
+        "organization_id": 1,
+        "product_id": 1,
+        "price_id": "price_123",
+        "quantity": 1,
+        "payment_method_id": "pm_card_visa"
+      }
+      ```
+    - Response:
+      ```json
+      {
+        "subscriptionId": "sub_123"
+      }
+      ```
 
-- **Product Endpoints**:
-  - `POST /api/products`: Create a new product
-  - `GET /api/products`: Get all products
+### Organization
 
-- **Subscription Endpoints**:
-  - `POST /api/subscriptions`: Create a new subscription
-  - `GET /api/subscriptions`: Get all subscriptions
-  - `POST /api/check-subscription`: Check subscription validity
+- **Check if Organization Can Add More Subscriptions**: `POST /api/organizations/can-add-subscriptions`
+    - Request Body:
+      ```json
+      {
+        "organization_id": 1,
+        "stripe_subscription_id": "sub_123"
+      }
+      ```
+    - Response:
+      ```json
+      {
+        "can_add_more_subscriptions": true
+      }
+      ```
 
-## Mermaid Diagram
+- **Check if Users Have Subscription to Product**: `POST /api/organizations/users-have-subscription`
+    - Request Body:
+      ```json
+      {
+        "organization_id": 1,
+        "product_id": 1
+      }
+      ```
+    - Response:
+      ```json
+      {
+        "has_subscription": true
+      }
+      ```
+
+### Users
+
+- **Create User**: `POST /api/users`
+    - Request Body:
+      ```json
+      {
+        "name": "User Name",
+        "email": "user@example.com",
+        "password": "password123",
+        "organization_id": 1,
+        "stripe_subscription_id": "sub_123"
+      }
+      ```
+    - Response:
+      ```json
+      {
+        "id": 1,
+        "name": "User Name",
+        "email": "user@example.com"
+      }
+      ```
+
+## Architecture Diagram
 
 ```mermaid
-graph TD;
-    A[Organization] -->|has many| B[User];
-    A -->|pays for| C[Subscription];
-    C -->|is for| D[Product];
-    B -->|is part of| A;
-    C -->|is associated with| A;
-    C -->|includes| B;
-    D -->|is subscribed to by| C;
-```
-
-## License
-
-This project is licensed under the MIT License.
+graph TD
+    A[Frontend (React)]
+    B[Backend (Golang/Gin)]
+    C[PostgreSQL Database]
+    D[Stripe API]
+    
+    A -->|API Requests| B
+    B -->|Database Queries| C
+    B -->|Payment Processing| D
+    C -->|Data Storage| B
+    D -->|Payment Events| B
