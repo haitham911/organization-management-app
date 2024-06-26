@@ -1,6 +1,17 @@
 # Organization Management App
 
 This project is a web application that manages organizations as vendors providing products. The application includes features such as subscriptions, user management, and integration with Stripe for payment processing.
+## Business Logic
+
+1. **User Creation**: When a new user is created, the system first checks if the associated organization has enough subscription capacity. The user is then created and linked to the organization and the relevant Stripe subscription.
+
+2. **Subscription Creation**: When an organization subscribes to a product, a subscription is created in Stripe. The subscription details, including the quantity, are stored in the database.
+
+3. **Subscription Validation**: Before adding a new user to an organization, the system checks if the organization can add more subscriptions based on the quantity of the existing subscriptions.
+
+4. **Payment Handling**: Payment methods are attached to organizations when subscriptions are created. Stripe webhooks are used to handle events such as payment successes and subscription updates.
+
+5. **Product Access Check**: The system validates if users within an organization have access to a product based on their subscriptions.
 
 ## Features
 
