@@ -6,6 +6,8 @@ import Organizations from './components/Organizations';
 import ProductList from './components/Products';
 import Subscriptions from './components/Subscriptions';
 import Users from './components/Users';
+import AddUser from './components/AddUser';
+
 import SubscribeProduct from './components/SubscribeProduct';
 import Navigation from './components/Navigation'; // Import Navigation component
 import AddOrganization from './components/AddOrganization';
@@ -22,6 +24,7 @@ function App() {
           <Route path="/organizations" element={<Organizations />} />
           <Route path="/add-organization" element={<AddOrganization/>} />
           <Route path="/users" element={<Users />} />
+          <Route path="/add-user" element={<AddUser />} />
           <Route path="/products" element={<ProductList />} />
           <Route path="/subscriptions" element={<Subscriptions />} />
           <Route path="/subscribe" element={<SubscribeProduct />} />

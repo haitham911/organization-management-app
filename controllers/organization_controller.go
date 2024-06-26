@@ -75,3 +75,32 @@ func CanAddMoreUsers(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"can_add_more_users": canAddMoreUsers})
 }
+
+// Check if an organization can add more subscriptions
+func CanAddMoreSubscriptions(c *gin.Context) {
+	var request struct {
+		OrganizationID       uint   `json:"organization_id" binding:"required"`
+		StripeSubscriptionID string `json:"stripe_subscription_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var subscription models.Subscription
+	if err := config.DB.Where("organization_id = ? AND stripe_subscription_id = ?", request.OrganizationID, request.StripeSubscriptionID).First(&subscription).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Subscription not found"})
+		return
+	}
+
+	var totalUsers int64
+	if err := config.DB.Model(&models.UserOrganization{}).Where("organization_id = ? AND stripe_subscription_id = ?", request.OrganizationID, request.StripeSubscriptionID).Count(&totalUsers).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count users"})
+		return
+	}
+
+	canAddMoreSubscriptions := totalUsers < int64(subscription.Quantity)
+
+	c.JSON(http.StatusOK, gin.H{"can_add_more_subscriptions": canAddMoreSubscriptions})
+}

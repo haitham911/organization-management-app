@@ -16,6 +16,7 @@ type Organization struct {
 }
 type User struct {
 	gorm.Model
+	Name            string         `json:"name"`
 	Email           string         `json:"email" gorm:"unique"`
 	Password        string         `json:"password"`
 	MagicLinkToken  string         `json:"magic_link_token"`
@@ -38,4 +39,10 @@ type Subscription struct {
 	Active               bool   `json:"active"`   // Subscription active status
 	SubscriptionStatus   string
 	ProductID            uint `json:"product_id" binding:"required"`
+}
+type UserOrganization struct {
+	gorm.Model
+	UserID               uint   `json:"user_id"`
+	OrganizationID       uint   `json:"organization_id"`
+	StripeSubscriptionID string `json:"stripe_subscription_id"`
 }
