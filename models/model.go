@@ -37,4 +37,5 @@ type Subscription struct {
 	Quantity             int    `json:"quantity"` // Number of users/seats
 	Active               bool   `json:"active"`   // Subscription active status
 	SubscriptionStatus   string
+	ProductID            uint `json:"product_id" binding:"required"`
 }

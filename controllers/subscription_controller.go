@@ -19,6 +19,7 @@ func CreateSubscription(c *gin.Context) {
 		PriceID         string `json:"price_id" binding:"required"`
 		Quantity        int    `json:"quantity" binding:"required"`
 		PaymentMethodID string `json:"payment_method_id" binding:"required"`
+		ProductID       uint   `json:"product_id" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&subscriptionRequest); err != nil {
@@ -77,6 +78,7 @@ func CreateSubscription(c *gin.Context) {
 		Quantity:             subscriptionRequest.Quantity,
 		Active:               subscription.Status == "active",
 		PriceId:              subscriptionRequest.PriceID,
+		ProductID:            subscriptionRequest.ProductID,
 	}
 	if err := config.DB.Create(&dbSubscription).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save subscription"})
