@@ -1,70 +1,153 @@
-# Getting Started with Create React App
+# Organization Management App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project is a web application that manages organizations as vendors providing products. The application includes features such as subscriptions, user management, and integration with Stripe for payment processing.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **Add Products**: Administrators can add new products to Stripe and the application's database.
+- **Subscribe to Products**: Organizations can subscribe to products and manage their subscriptions.
+- **User Management**: Check if an organization can add more users based on their current subscriptions.
+- **Subscription Validation**: Check if users belong to an organization with a subscription to a product.
+- **Stripe Integration**: Seamless integration with Stripe for handling payments and subscriptions.
 
-### `npm start`
+## Technologies Used
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Frontend**: React, Stripe Elements
+- **Backend**: Golang, Gin, GORM, PostgreSQL, Stripe API
+- **Database**: PostgreSQL
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Prerequisites
 
-### `npm test`
+- Node.js
+- Go
+- PostgreSQL
+- Stripe Account
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Setup
 
-### `npm run build`
+### Backend
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1. **Clone the repository**:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+    ```sh
+    git clone https://github.com/your-username/organization-management-app.git
+    cd organization-management-app
+    ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. **Install dependencies**:
 
-### `npm run eject`
+    ```sh
+    go mod download
+    ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+3. **Setup PostgreSQL database**:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+    Create a database and update the database configuration in `config/config.go`.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+4. **Run the backend**:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+    ```sh
+    go run main.go
+    ```
 
-## Learn More
+### Frontend
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+1. **Navigate to the frontend directory**:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+    ```sh
+    cd src/frontend
+    ```
 
-### Code Splitting
+2. **Install dependencies**:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+    ```sh
+    npm install
+    ```
 
-### Analyzing the Bundle Size
+3. **Start the frontend**:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+    ```sh
+    npm start
+    ```
 
-### Making a Progressive Web App
+## API Endpoints
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Products
 
-### Advanced Configuration
+- **Add Product**: `POST /api/products`
+    - Request Body: 
+      ```json
+      {
+        "name": "Product Name",
+        "description": "Product Description",
+        "price": 1000,
+        "currency": "usd",
+        "interval": "month"
+      }
+      ```
+    - Response:
+      ```json
+      {
+        "id": 1,
+        "name": "Product Name",
+        "description": "Product Description",
+        "price": 1000,
+        "currency": "usd",
+        "interval": "month",
+        "stripe_product_id": "prod_123"
+      }
+      ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### Subscriptions
 
-### Deployment
+- **Create Subscription**: `POST /api/subscriptions`
+    - Request Body:
+      ```json
+      {
+        "organization_id": 1,
+        "product_id": 1,
+        "price_id": "price_123",
+        "quantity": 1,
+        "payment_method_id": "pm_card_visa"
+      }
+      ```
+    - Response:
+      ```json
+      {
+        "subscriptionId": "sub_123"
+      }
+      ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### Organization
 
-### `npm run build` fails to minify
+- **Check if Organization Can Add More Users**: `POST /api/organizations/can-add-users`
+    - Request Body:
+      ```json
+      {
+        "organization_id": 1
+      }
+      ```
+    - Response:
+      ```json
+      {
+        "can_add_more_users": true
+      }
+      ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- **Check if Users Have Subscription to Product**: `POST /api/organizations/users-have-subscription`
+    - Request Body:
+      ```json
+      {
+        "organization_id": 1,
+        "product_id": 1
+      }
+      ```
+    - Response:
+      ```json
+      {
+        "has_subscription": true
+      }
+      ```
+
+## Directory Structure
+
