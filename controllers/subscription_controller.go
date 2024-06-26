@@ -5,59 +5,85 @@ import (
 	"net/http"
 	"organization-management-app/config"
 	"organization-management-app/models"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72/customer"
+	"github.com/stripe/stripe-go/v72/paymentmethod"
 	"github.com/stripe/stripe-go/v72/sub"
 )
 
 func CreateSubscription(c *gin.Context) {
 	var subscriptionRequest struct {
-		OrganizationID uint `json:"organization_id"`
-		ProductID      uint `json:"product_id"`
-		Quantity       int  `json:"quantity"`
+		OrganizationID  uint   `json:"organization_id" binding:"required"`
+		PriceID         string `json:"price_id" binding:"required"`
+		Quantity        int    `json:"quantity" binding:"required"`
+		PaymentMethodID string `json:"payment_method_id" binding:"required"`
 	}
+
 	if err := c.ShouldBindJSON(&subscriptionRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Retrieve the organization from the database
 	var organization models.Organization
-	var product models.Product
-	if err := config.DB.First(&organization, subscriptionRequest.OrganizationID).Error; err != nil {
+	if err := config.DB.Where("id = ?", subscriptionRequest.OrganizationID).First(&organization).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Organization not found"})
 		return
 	}
-	if err := config.DB.First(&product, subscriptionRequest.ProductID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
+
+	// Attach the payment method to the customer
+	_, err := paymentmethod.Attach(subscriptionRequest.PaymentMethodID, &stripe.PaymentMethodAttachParams{
+		Customer: stripe.String(organization.StripeCustomerID),
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to attach payment method"})
 		return
 	}
-	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
 
+	// Set the default payment method for the customer
+	_, err = customer.Update(organization.StripeCustomerID, &stripe.CustomerParams{
+		InvoiceSettings: &stripe.CustomerInvoiceSettingsParams{
+			DefaultPaymentMethod: stripe.String(subscriptionRequest.PaymentMethodID),
+		},
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to set default payment method"})
+		return
+	}
+
+	// Create the Stripe subscription
 	params := &stripe.SubscriptionParams{
-		Customer: stripe.String(organization.StripeCustomerID), // Replace with actual Stripe customer ID
+		Customer: stripe.String(organization.StripeCustomerID),
 		Items: []*stripe.SubscriptionItemsParams{
 			{
-				Price:    stripe.String(product.PriceID),
+				Price:    stripe.String(subscriptionRequest.PriceID),
 				Quantity: stripe.Int64(int64(subscriptionRequest.Quantity)),
 			},
 		},
 	}
-	s, err := sub.New(params)
+	subscription, err := sub.New(params)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	subscription := models.Subscription{
+	// Save the subscription to the database
+	dbSubscription := models.Subscription{
 		OrganizationID:       subscriptionRequest.OrganizationID,
-		ProductID:            subscriptionRequest.ProductID,
-		StripeSubscriptionID: s.ID,
+		StripeSubscriptionID: subscription.ID,
+		SubscriptionStatus:   string(subscription.Status),
 		Quantity:             subscriptionRequest.Quantity,
+		Active:               subscription.Status == "active",
+		PriceId:              subscriptionRequest.PriceID,
 	}
-	config.DB.Create(&subscription)
-	c.JSON(http.StatusOK, subscription)
+	if err := config.DB.Create(&dbSubscription).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save subscription"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"subscriptionId": subscription.ID})
 }
 
 func GetSubscriptions(c *gin.Context) {

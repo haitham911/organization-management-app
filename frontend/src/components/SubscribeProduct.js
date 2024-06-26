@@ -1,67 +1,57 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
 import axios from './api';
+import CheckoutForm from './CheckoutForm';
+import './SubscribeProduct.css';
+
+const stripePromise = loadStripe('pk_test_51PV0Z9Lq8P7MVUmbJbUWkGNUDn1C4hOiaDIVLRKBvqTWSmFwkacAFyci9T5RNXFX1XKPgoSDf22iD1WiFkjLXz7B00Bz3bwr2q');
 
 const SubscribeProduct = () => {
   const [products, setProducts] = useState([]);
+  const [selectedPrice, setSelectedPrice] = useState('');
   const [organizations, setOrganizations] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [selectedOrganization, setSelectedOrganization] = useState(null);
+  const [selectedOrganization, setSelectedOrganization] = useState('');
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
-    axios.get('/products')
-      .then(response => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get('/products');
         setProducts(response.data);
-      })
-      .catch(error => {
-        console.error('There was an error fetching the products!', error);
-      });
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
 
-    axios.get('/organizations')
-      .then(response => {
+    const fetchOrganizations = async () => {
+      try {
+        const response = await axios.get('/organizations');
         setOrganizations(response.data);
-      })
-      .catch(error => {
-        console.error('There was an error fetching the organizations!', error);
-      });
+      } catch (error) {
+        console.error('Error fetching organizations:', error);
+      }
+    };
+
+    fetchProducts();
+    fetchOrganizations();
   }, []);
 
-  const handleSubscribe = async () => {
-    try {
-      const response = await axios.post('/subscriptions', {
-        organization_id: selectedOrganization.ID,
-        product_id: selectedProduct.ID,
-        quantity: quantity
-      });
-      console.log(response.data);
-    } catch (error) {
-      console.error('There was an error creating the subscription!', error);
-    }
-  };
-
   return (
-    <div>
+    <div className="container">
       <h2>Subscribe to a Product</h2>
-      <select onChange={(e) => setSelectedOrganization(organizations.find(o => o.ID === parseInt(e.target.value)))}>
-        <option value="">Select an Organization</option>
-        {organizations.map(organization => (
-          <option key={organization.ID} value={organization.ID}>{organization.Name}</option>
-        ))}
-      </select>
-      <select onChange={(e) => setSelectedProduct(products.find(p => p.ID === parseInt(e.target.value)))}>
-        <option value="">Select a Product</option>
-        {products.map(product => (
-          <option key={product.ID} value={product.ID}>{product.Name}</option>
-        ))}
-      </select>
-      <input
-        type="number"
-        value={quantity}
-        onChange={(e) => setQuantity(parseInt(e.target.value))}
-        min="1"
-        placeholder="Quantity"
-      />
-      <button onClick={handleSubscribe}>Subscribe</button>
+      <Elements stripe={stripePromise}>
+        <CheckoutForm
+          products={products}
+          selectedPrice={selectedPrice}
+          setSelectedPrice={setSelectedPrice}
+          organizations={organizations}
+          selectedOrganization={selectedOrganization}
+          setSelectedOrganization={setSelectedOrganization}
+          quantity={quantity}
+          setQuantity={setQuantity}
+        />
+      </Elements>
     </div>
   );
 };

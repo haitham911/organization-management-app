@@ -19,7 +19,9 @@ const Organizations = () => {
       <h2>Organizations</h2>
       <ul>
         {organizations.map(org => (
-          <li key={org.ID}>{org.Name}</li>
+          <li key={org.ID}>
+            {org.name}
+          </li>
         ))}
       </ul>
     </div>

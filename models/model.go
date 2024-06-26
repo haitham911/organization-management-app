@@ -32,8 +32,9 @@ type Product struct {
 type Subscription struct {
 	gorm.Model
 	OrganizationID       uint
-	ProductID            uint
+	PriceId              string
 	StripeSubscriptionID string `json:"stripe_subscription_id"`
 	Quantity             int    `json:"quantity"` // Number of users/seats
 	Active               bool   `json:"active"`   // Subscription active status
+	SubscriptionStatus   string
 }

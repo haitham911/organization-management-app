@@ -16,7 +16,7 @@ func RegisterUserRoutes(r *gin.RouterGroup) {
 }
 func RegisterProductRoutes(r *gin.RouterGroup) {
 	r.POST("/products", controllers.CreateProduct)
-	r.GET("/products", controllers.GetProducts)
+	r.GET("/products", controllers.ListProductsWithPrices)
 }
 func RegisterSubscriptionRoutes(r *gin.RouterGroup) {
 	r.POST("/subscriptions", controllers.CreateSubscription)
@@ -25,4 +25,7 @@ func RegisterSubscriptionRoutes(r *gin.RouterGroup) {
 func RegisterAuthRoutes(r *gin.RouterGroup) {
 	r.POST("/invite", controllers.InviteUser)
 	r.GET("/verify-magic-link", controllers.VerifyMagicLink)
+}
+func RegisterWebhookRoutes(r *gin.RouterGroup) {
+	r.POST("/webhook", controllers.HandleWebhook)
 }

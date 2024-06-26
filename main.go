@@ -28,7 +28,7 @@ func main() {
 	routes.RegisterProductRoutes(v1)
 	routes.RegisterSubscriptionRoutes(v1)
 	routes.RegisterAuthRoutes(v1)
-
+	routes.RegisterWebhookRoutes(v1)
 	if err := r.Run(); err != nil {
 		log.Fatalf("Failed to run server: %v", err)
 	}
