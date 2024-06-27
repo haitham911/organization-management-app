@@ -2,6 +2,7 @@ package routes
 
 import (
 	"organization-management-app/controllers"
+	"organization-management-app/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,8 +12,9 @@ func RegisterOrganizationRoutes(r *gin.RouterGroup) {
 	r.GET("/organizations", controllers.GetOrganizations)
 }
 func RegisterUserRoutes(r *gin.RouterGroup) {
-	r.POST("/users", controllers.CreateUser)
-	r.GET("/users", controllers.GetUsers)
+	r.Use(middlewares.AuthMiddleware())
+	r.POST("/users", middlewares.AdminOnly(), controllers.CreateUser)
+	r.GET("/users", middlewares.AdminOnly(), controllers.GetUsers)
 }
 func RegisterProductRoutes(r *gin.RouterGroup) {
 	r.POST("/products", controllers.CreateProduct)

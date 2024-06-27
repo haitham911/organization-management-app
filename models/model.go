@@ -19,6 +19,7 @@ type User struct {
 	Name            string         `json:"name"`
 	Email           string         `json:"email" gorm:"unique"`
 	Password        string         `json:"password"`
+	Role            string         `json:"role"` // Admin or User
 	MagicLinkToken  string         `json:"magic_link_token"`
 	MagicLinkExpiry time.Time      `json:"magic_link_expiry"`
 	Organizations   []Organization `gorm:"many2many:organization_users;"`
