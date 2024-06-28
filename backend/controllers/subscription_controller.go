@@ -69,14 +69,14 @@ func CreateSubscription(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
+	active := subscription.Status == "active"
 	// Save the subscription to the database
 	dbSubscription := models.Subscription{
 		OrganizationID:       subscriptionRequest.OrganizationID,
 		StripeSubscriptionID: subscription.ID,
 		SubscriptionStatus:   string(subscription.Status),
 		Quantity:             subscriptionRequest.Quantity,
-		Active:               subscription.Status == "active",
+		Active:               &active,
 		PriceId:              subscriptionRequest.PriceID,
 		ProductID:            subscriptionRequest.ProductID,
 	}
@@ -103,7 +103,7 @@ func ActivateSubscription(stripeSubscriptionID string) error {
 	}
 
 	// Update the subscription to active
-	subscription.Active = true
+	*subscription.Active = true
 	if err := config.DB.Save(&subscription).Error; err != nil {
 		return fmt.Errorf("could not activate subscription: %w", err)
 	}

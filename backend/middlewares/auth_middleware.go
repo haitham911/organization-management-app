@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"net/http"
-	"organization-management-app/config"
 	"organization-management-app/models"
 	"organization-management-app/utils"
 
@@ -31,15 +30,13 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		userID := claims.ID
-		var user models.User
-		if err := config.DB.First(&user, userID).Error; err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-			c.Abort()
-			return
+		user := models.User{
+			ID:    claims.UserID,
+			Role:  claims.Role,
+			Email: claims.Email,
 		}
 
-		c.Set("userID", claims.ID)
+		c.Set("userID", claims.UserID)
 		c.Set("userEmail", claims.Email)
 		c.Set("user", &user)
 		c.Next()

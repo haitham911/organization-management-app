@@ -13,8 +13,9 @@ import (
 var jwtSecret = []byte("your_secret_key")
 
 type Claims struct {
-	ID    uint   `json:"id"`
-	Email string `json:"email"`
+	UserID uint   `json:"user_id"`
+	Email  string `json:"email"`
+	Role   string `json:"role"`
 	jwt.StandardClaims
 }
 
@@ -28,8 +29,9 @@ func GenerateMagicLinkToken() (string, error) {
 
 func GenerateToken(user models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
-		ID:    user.ID,
-		Email: user.Email,
+		UserID: user.ID,
+		Email:  user.Email,
+		Role:   user.Role,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
 		},

@@ -83,7 +83,7 @@ func updateSubscriptionStatus(subscription stripe.Subscription) error {
 		return fmt.Errorf("could not find subscription: %w", err)
 	}
 
-	dbSubscription.Active = subscription.Status == "active"
+	*dbSubscription.Active = subscription.Status == "active"
 	dbSubscription.SubscriptionStatus = string(subscription.Status)
 	if err := config.DB.Save(&dbSubscription).Error; err != nil {
 		return fmt.Errorf("could not update subscription status: %w", err)

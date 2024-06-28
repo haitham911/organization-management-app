@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"time"
 
 	"gorm.io/gorm"
@@ -15,7 +16,10 @@ type Organization struct {
 	Subscriptions    []Subscription `json:"subscriptions"`
 }
 type User struct {
-	gorm.Model
+	ID              uint `gorm:"primarykey"`
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	DeletedAt       sql.NullTime   `gorm:"index"`
 	Name            string         `json:"name"`
 	Email           string         `json:"email" gorm:"unique"`
 	Password        string         `json:"password"`
@@ -36,8 +40,8 @@ type Subscription struct {
 	OrganizationID       uint
 	PriceId              string
 	StripeSubscriptionID string `json:"stripe_subscription_id"`
-	Quantity             int    `json:"quantity"` // Number of users/seats
-	Active               bool   `json:"active"`   // Subscription active status
+	Quantity             int    `json:"quantity"`                             // Number of users/seats
+	Active               *bool  `gorm:"not null;default:false" json:"active"` // Subscription active status
 	SubscriptionStatus   string
 	ProductID            uint `json:"product_id" binding:"required"`
 }

@@ -97,7 +97,7 @@ func Login(c *gin.Context) {
 	hasActiveSubscription := false
 	for _, org := range user.Organizations {
 		for _, sub := range org.Subscriptions {
-			if sub.Active {
+			if *sub.Active {
 				hasActiveSubscription = true
 				break
 			}
