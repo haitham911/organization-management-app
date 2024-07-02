@@ -16,17 +16,20 @@ type Organization struct {
 	Subscriptions    []Subscription `json:"subscriptions"`
 }
 type User struct {
-	ID              uint `gorm:"primarykey"`
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	DeletedAt       sql.NullTime   `gorm:"index"`
-	Name            string         `json:"name"`
-	Email           string         `json:"email" gorm:"unique"`
-	Password        string         `json:"password"`
-	Role            string         `json:"role"` // Admin or User
-	MagicLinkToken  string         `json:"magic_link_token"`
-	MagicLinkExpiry time.Time      `json:"magic_link_expiry"`
-	Organizations   []Organization `gorm:"many2many:organization_users;"`
+	ID               uint `gorm:"primarykey"`
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	DeletedAt        sql.NullTime   `gorm:"index"`
+	Usage            int            `json:"usage" gorm:"default:0"`
+	StripeCustomerID string         `json:"stripe_customer_id"` // Stripe Customer ID for billing
+	Name             string         `json:"name"`
+	Email            string         `json:"email" gorm:"unique"`
+	Password         string         `json:"password"`
+	Role             string         `json:"role"` // Admin or User
+	MagicLinkToken   string         `json:"magic_link_token"`
+	MagicLinkExpiry  time.Time      `json:"magic_link_expiry"`
+	Organizations    []Organization `gorm:"many2many:organization_users;"`
+	Subscriptions    []Subscription `json:"subscriptions"`
 }
 
 type Product struct {
@@ -37,13 +40,16 @@ type Product struct {
 }
 type Subscription struct {
 	gorm.Model
-	OrganizationID       uint
+	UserID               *uint `json:"user_id"`
+	OrganizationID       *uint
 	PriceId              string
 	StripeSubscriptionID string `json:"stripe_subscription_id"`
 	Quantity             int    `json:"quantity"`                             // Number of users/seats
 	Active               *bool  `gorm:"not null;default:false" json:"active"` // Subscription active status
 	SubscriptionStatus   string
 	ProductID            uint `json:"product_id" binding:"required"`
+	UsageLimit           int  `json:"usage_limit" gorm:"default:0"` // Example usage limit
+
 }
 type UserOrganization struct {
 	gorm.Model

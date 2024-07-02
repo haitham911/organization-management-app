@@ -15,7 +15,8 @@ import (
 
 func CreateSubscription(c *gin.Context) {
 	var subscriptionRequest struct {
-		OrganizationID  uint   `json:"organization_id" binding:"required"`
+		UserID          *uint  `json:"user_id"`
+		OrganizationID  *uint  `json:"organization_id" binding:"required"`
 		PriceID         string `json:"price_id" binding:"required"`
 		Quantity        int    `json:"quantity" binding:"required"`
 		PaymentMethodID string `json:"payment_method_id" binding:"required"`
