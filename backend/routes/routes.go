@@ -15,6 +15,11 @@ func RegisterUserRoutes(r *gin.RouterGroup) {
 	r.Use(middlewares.AuthMiddleware())
 	r.POST("/users", middlewares.AdminOnly(), controllers.CreateUser)
 	r.GET("/users", middlewares.AdminOnly(), controllers.GetUsers)
+	r.POST("/user/free", controllers.CreateUserFreeSubscription)
+	r.POST("/user/subscription", controllers.CreateUserWithSubscription)
+	r.POST("/user/upgrade", controllers.Upgrade)
+	r.POST("/user/downgrade", controllers.Downgrade)
+
 }
 func RegisterProductRoutes(r *gin.RouterGroup) {
 	r.POST("/products", controllers.CreateProduct)
