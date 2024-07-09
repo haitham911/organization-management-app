@@ -10,6 +10,9 @@ import (
 func RegisterOrganizationRoutes(r *gin.RouterGroup) {
 	r.POST("/organizations", controllers.CreateOrganization)
 	r.GET("/organizations", controllers.GetOrganizations)
+	r.GET("/organization-info", controllers.GetOrganizationSubscriptionInfo)
+	r.POST("/send-invite", controllers.SendInvite)
+
 }
 func RegisterUserRoutes(r *gin.RouterGroup) {
 	r.Use(middlewares.AuthMiddleware())
@@ -19,6 +22,7 @@ func RegisterUserRoutes(r *gin.RouterGroup) {
 	r.POST("/user/subscription", controllers.CreateUserWithSubscription)
 	r.POST("/user/upgrade", controllers.Upgrade)
 	r.POST("/user/downgrade", controllers.Downgrade)
+	r.POST("/accept-invite", controllers.AcceptInvite)
 
 }
 func RegisterProductRoutes(r *gin.RouterGroup) {
@@ -28,6 +32,8 @@ func RegisterProductRoutes(r *gin.RouterGroup) {
 func RegisterSubscriptionRoutes(r *gin.RouterGroup) {
 	r.POST("/subscriptions", controllers.CreateSubscription)
 	r.GET("/subscriptions", controllers.GetSubscriptions)
+	r.POST("/prorated-cost", controllers.GetProratedCost)
+
 }
 func RegisterAuthRoutes(r *gin.RouterGroup) {
 	r.POST("/invite", controllers.InviteUser)

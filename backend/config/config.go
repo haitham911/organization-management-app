@@ -34,3 +34,7 @@ func InitStripe() {
 		log.Panic("STRIPE_SECRET_KEY required")
 	}
 }
+func GetStripeSecretKey() string {
+	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
+	return stripe.Key
+}
