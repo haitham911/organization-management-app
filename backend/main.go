@@ -23,7 +23,7 @@ import (
 //	@securityDefinitions.apikey Bearer
 //	@in header
 //	@name Authorization
-//
+
 // @description Type "Bearer" followed by a space and JWT token.
 func main() {
 	// Load environment variables from .env file
