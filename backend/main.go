@@ -4,7 +4,9 @@ import (
 	"log"
 	"net/http"
 	"organization-management-app/config"
+	_ "organization-management-app/docs"
 	"organization-management-app/routes"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -50,7 +52,7 @@ func main() {
 	routes.RegisterSubscriptionRoutes(v1)
 	routes.RegisterAuthRoutes(v1)
 	routes.RegisterWebhookRoutes(v1)
-	if err := r.Run(); err != nil {
+	if err := r.Run(":" + os.Getenv("PORT")); err != nil {
 		log.Fatalf("Failed to run server: %v", err)
 	}
 }
