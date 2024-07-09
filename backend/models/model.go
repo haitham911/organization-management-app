@@ -57,3 +57,10 @@ type UserOrganization struct {
 	OrganizationID       uint   `json:"organization_id"`
 	StripeSubscriptionID string `json:"stripe_subscription_id"`
 }
+type UserInvite struct {
+	gorm.Model
+	Email          string `json:"email"`
+	OrganizationID uint   `json:"organization_id"`
+	InviteToken    string `json:"invite_token"`
+	IsAccepted     bool   `json:"is_accepted"`
+}

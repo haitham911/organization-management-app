@@ -1,0 +1,265 @@
+definitions:
+  controllers.AcceptInviteReq:
+    properties:
+      invite_token:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    required:
+    - invite_token
+    - name
+    - password
+    type: object
+  controllers.AddSeatReq:
+    properties:
+      organization_id:
+        type: integer
+      stripe_subscription_id:
+        type: string
+      user_id:
+        type: integer
+    required:
+    - stripe_subscription_id
+    type: object
+  controllers.GetProratedCostReq:
+    properties:
+      organization_id:
+        type: integer
+      seat_count:
+        type: integer
+      stripe_subscription_id:
+        type: string
+    required:
+    - organization_id
+    - seat_count
+    - stripe_subscription_id
+    type: object
+  controllers.InviteReq:
+    properties:
+      email:
+        type: string
+      organization_id:
+        type: integer
+    required:
+    - email
+    - organization_id
+    type: object
+  controllers.RemoveUserReq:
+    properties:
+      organization_id:
+        type: integer
+      user_id:
+        type: integer
+    required:
+    - organization_id
+    - user_id
+    type: object
+info:
+  contact: {}
+paths:
+  /subscriptions/add-seat:
+    post:
+      consumes:
+      - application/json
+      description: Add a user seat to an existing subscription with prorated billing
+      parameters:
+      - description: Add Seat
+        in: body
+        name: subscription
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.AddSeatReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Add a seat to the subscription
+      tags:
+      - subscriptions
+  /subscriptions/organization-info:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the number of members in an organization and how many
+        subscriptions are left
+      parameters:
+      - description: Organization ID
+        in: query
+        name: organization_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get the number of members and remaining subscriptions for an organization
+      tags:
+      - subscriptions
+  /subscriptions/prorated-cost:
+    post:
+      consumes:
+      - application/json
+      description: Get the prorated cost for adding a seat to a subscription
+      parameters:
+      - description: body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.GetProratedCostReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get the prorated cost for adding a seat to a subscription
+      tags:
+      - subscriptions
+  /subscriptions/remove-user:
+    post:
+      consumes:
+      - application/json
+      description: Remove a user from an organization and update the subscription
+      parameters:
+      - description: Remove User
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.RemoveUserReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Remove a user from the organization
+      tags:
+      - subscriptions
+  /users/accept-invite:
+    post:
+      consumes:
+      - application/json
+      description: Accept an invite and create a user in the organization
+      parameters:
+      - description: body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.AcceptInviteReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Accept an invite to join the organization
+      tags:
+      - users
+  /users/send-invite:
+    post:
+      consumes:
+      - application/json
+      description: Send an invite to a user to join the organization
+      parameters:
+      - description: body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.InviteReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Send an invite to a user
+      tags:
+      - users
+swagger: "2.0"

@@ -4,12 +4,29 @@ import (
 	"log"
 	"net/http"
 	"organization-management-app/config"
+	_ "organization-management-app/docs"
 	"organization-management-app/routes"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 )
 
+// godoc
+//
+//	@title			organization management
+//	@version		1.0
+//	@description	organization-management-app
+//	@contact.name	Haitham
+//	@contact.url	https://github.com/haitham911/organization-management-app
+//	@BasePath		/api/v1
+//	@securityDefinitions.apikey Bearer
+//	@in header
+//	@name Authorization
+
+// @description Type "Bearer" followed by a space and JWT token.
 func main() {
 	// Load environment variables from .env file
 	if err := godotenv.Load(); err != nil {
@@ -20,6 +37,12 @@ func main() {
 	config.InitStripe()
 
 	r := gin.Default()
+	ginSwaggerConfig := &ginSwagger.Config{
+		URL:                  "/swagger/doc.json",
+		PersistAuthorization: true,
+	}
+	swaggerUIOpts := ginSwagger.CustomWrapHandler(ginSwaggerConfig, swaggerFiles.Handler)
+	r.GET("/swagger/*any", swaggerUIOpts)
 	// Register API routes
 	r.Use(CORSMiddleware()) // this middleware should be applied first so that the auth middleware don't block requests
 	v1 := r.Group("/api")
@@ -29,7 +52,7 @@ func main() {
 	routes.RegisterSubscriptionRoutes(v1)
 	routes.RegisterAuthRoutes(v1)
 	routes.RegisterWebhookRoutes(v1)
-	if err := r.Run(); err != nil {
+	if err := r.Run(":" + os.Getenv("PORT")); err != nil {
 		log.Fatalf("Failed to run server: %v", err)
 	}
 }

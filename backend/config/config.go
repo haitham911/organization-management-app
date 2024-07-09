@@ -23,7 +23,7 @@ func InitDB() *gorm.DB {
 	if err != nil {
 		log.Fatalf("failed to connect database: %v", err)
 	}
-	db.AutoMigrate(&models.Organization{}, &models.User{}, &models.Product{}, &models.Subscription{})
+	db.AutoMigrate(&models.Organization{}, &models.User{}, &models.Product{}, &models.Subscription{}, &models.UserInvite{})
 	DB = db
 	return db
 }
@@ -33,4 +33,8 @@ func InitStripe() {
 	if os.Getenv("STRIPE_SECRET_KEY") == "" {
 		log.Panic("STRIPE_SECRET_KEY required")
 	}
+}
+func GetStripeSecretKey() string {
+	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
+	return stripe.Key
 }
