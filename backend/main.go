@@ -45,7 +45,7 @@ func main() {
 	r.GET("/swagger/*any", swaggerUIOpts)
 	// Register API routes
 	r.Use(CORSMiddleware()) // this middleware should be applied first so that the auth middleware don't block requests
-	v1 := r.Group("/api")
+	v1 := r.Group("/api/v1")
 	routes.RegisterOrganizationRoutes(v1)
 	routes.RegisterUserRoutes(v1)
 	routes.RegisterProductRoutes(v1)

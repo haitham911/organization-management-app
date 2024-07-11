@@ -10,12 +10,118 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "contact": {},
+        "contact": {
+            "name": "Haitham",
+            "url": "https://github.com/haitham911/organization-management-app"
+        },
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/organizations/subscription-info": {
+            "get": {
+                "description": "Retrieve the number of members in an organization and how many subscriptions are left",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "organizations"
+                ],
+                "summary": "Get the number of members and remaining subscriptions for an organization",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Organization ID",
+                        "name": "organization_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/subscriptions/accept-invite": {
+            "post": {
+                "description": "Accept an invite and create a user in the organization",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "Accept an invite to join the organization",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.AcceptInviteReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/subscriptions/add-seat": {
             "post": {
                 "description": "Add a user seat to an existing subscription with prorated billing",
@@ -65,9 +171,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/subscriptions/organization-info": {
-            "get": {
-                "description": "Retrieve the number of members in an organization and how many subscriptions are left",
+        "/subscriptions/disable-user": {
+            "post": {
+                "description": "Disable a user and remove their seat from the organization without deleting the user",
                 "consumes": [
                     "application/json"
                 ],
@@ -77,14 +183,16 @@ const docTemplate = `{
                 "tags": [
                     "subscriptions"
                 ],
-                "summary": "Get the number of members and remaining subscriptions for an organization",
+                "summary": "Disable a user and remove their seat from the organization",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Organization ID",
-                        "name": "organization_id",
-                        "in": "query",
-                        "required": true
+                        "description": "Disable User",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.DisableUserRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -97,13 +205,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -217,56 +318,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/accept-invite": {
-            "post": {
-                "description": "Accept an invite and create a user in the organization",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Accept an invite to join the organization",
-                "parameters": [
-                    {
-                        "description": "body",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controllers.AcceptInviteReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/users/send-invite": {
+        "/subscriptions/send-invite": {
             "post": {
                 "description": "Send an invite to a user to join the organization",
                 "consumes": [
@@ -276,7 +328,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "subscriptions"
                 ],
                 "summary": "Send an invite to a user",
                 "parameters": [
@@ -353,6 +405,21 @@ const docTemplate = `{
                 }
             }
         },
+        "controllers.DisableUserRequest": {
+            "type": "object",
+            "required": [
+                "organization_id",
+                "user_id"
+            ],
+            "properties": {
+                "organization_id": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "controllers.GetProratedCostReq": {
             "type": "object",
             "required": [
@@ -402,17 +469,24 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
+	Version:          "1.0",
 	Host:             "",
-	BasePath:         "",
+	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "organization management",
+	Description:      "Type \"Bearer\" followed by a space and JWT token.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

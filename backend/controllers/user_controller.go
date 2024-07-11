@@ -41,7 +41,7 @@ func CreateUser(c *gin.Context) {
 		}
 
 		var totalUsers int64
-		if err := config.DB.Model(&models.UserOrganization{}).Where("organization_id = ? AND stripe_subscription_id = ?", userRequest.OrganizationID, userRequest.StripeSubscriptionID).Count(&totalUsers).Error; err != nil {
+		if err := config.DB.Model(&models.OrganizationUser{}).Where("organization_id = ? AND stripe_subscription_id = ?", userRequest.OrganizationID, userRequest.StripeSubscriptionID).Count(&totalUsers).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count users"})
 			return
 		}
@@ -73,7 +73,7 @@ func CreateUser(c *gin.Context) {
 
 	if userRequest.Role != "Admin" {
 		// Associate user with the organization and their Stripe subscription
-		userOrg := models.UserOrganization{
+		userOrg := models.OrganizationUser{
 			UserID:               user.ID,
 			OrganizationID:       userRequest.OrganizationID,
 			StripeSubscriptionID: userRequest.StripeSubscriptionID,
@@ -473,4 +473,9 @@ func DowngradeOrganizationSubscription(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Subscription downgraded to free"})
+}
+
+type DisableUserRequest struct {
+	UserID         uint `json:"user_id" binding:"required"`
+	OrganizationID uint `json:"organization_id" binding:"required"`
 }

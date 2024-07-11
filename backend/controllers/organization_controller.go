@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"organization-management-app/config"
@@ -9,10 +10,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/stripe/stripe-go"
-	"github.com/stripe/stripe-go/customer"
-	"github.com/stripe/stripe-go/invoice"
-	"github.com/stripe/stripe-go/sub"
+	"github.com/stripe/stripe-go/v72/customer"
+
+	stripe "github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72/invoice"
+	"github.com/stripe/stripe-go/v72/sub"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -99,7 +101,7 @@ func CanAddMoreSubscriptions(c *gin.Context) {
 	}
 
 	var totalUsers int64
-	if err := config.DB.Model(&models.UserOrganization{}).Where("organization_id = ? AND stripe_subscription_id = ?", request.OrganizationID, request.StripeSubscriptionID).Count(&totalUsers).Error; err != nil {
+	if err := config.DB.Model(&models.OrganizationUser{}).Where("organization_id = ? AND stripe_subscription_id = ?", request.OrganizationID, request.StripeSubscriptionID).Count(&totalUsers).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count users"})
 		return
 	}
@@ -112,7 +114,7 @@ func CanAddMoreSubscriptions(c *gin.Context) {
 // GetOrganizationSubscriptionInfo godoc
 // @Summary Get the number of members and remaining subscriptions for an organization
 // @Description Retrieve the number of members in an organization and how many subscriptions are left
-// @Tags subscriptions
+// @Tags organizations
 // @Accept json
 // @Produce json
 // @Param organization_id query uint true "Organization ID"
@@ -120,7 +122,7 @@ func CanAddMoreSubscriptions(c *gin.Context) {
 // @Failure 400 {object} map[string]any
 // @Failure 404 {object} map[string]any
 // @Failure 500 {object} map[string]any
-// @Router /subscriptions/organization-info [get]
+// @Router /organizations/subscription-info [get]
 func GetOrganizationSubscriptionInfo(c *gin.Context) {
 	var query struct {
 		OrganizationID uint `form:"organization_id" binding:"required"`
@@ -140,8 +142,15 @@ func GetOrganizationSubscriptionInfo(c *gin.Context) {
 
 	// Count the number of members in the organization
 	var totalUsers int64
-	if err := config.DB.Model(&models.UserOrganization{}).Where("organization_id = ?", query.OrganizationID).Count(&totalUsers).Error; err != nil {
+	if err := config.DB.Model(&models.OrganizationUser{}).Where("organization_id = ?", query.OrganizationID).Count(&totalUsers).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count members"})
+		return
+	}
+	// Retrieve the subscription from Stripe
+	stripe.Key = config.GetStripeSecretKey()
+	subscriptionInfo, err := sub.Get(subscription.StripeSubscriptionID, nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve Stripe subscription"})
 		return
 	}
 
@@ -151,6 +160,7 @@ func GetOrganizationSubscriptionInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"total_members":           totalUsers,
 		"remaining_subscriptions": remainingSubscriptions,
+		"subscription_info":       subscriptionInfo,
 	})
 }
 
@@ -215,7 +225,7 @@ func RemoveUser(c *gin.Context) {
 	}
 
 	// Remove the user's association with the organization
-	if err := config.DB.Where("user_id = ? AND organization_id = ?", request.UserID, request.OrganizationID).Delete(&models.UserOrganization{}).Error; err != nil {
+	if err := config.DB.Where("user_id = ? AND organization_id = ?", request.UserID, request.OrganizationID).Delete(&models.OrganizationUser{}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove user from organization"})
 		return
 	}
@@ -314,7 +324,7 @@ type InviteReq struct {
 // SendInvite godoc
 // @Summary Send an invite to a user
 // @Description Send an invite to a user to join the organization
-// @Tags users
+// @Tags subscriptions
 // @Accept json
 // @Produce json
 //
@@ -322,11 +332,12 @@ type InviteReq struct {
 // @Success 200 {object} map[string]any
 // @Failure 400 {object} map[string]any
 // @Failure 500 {object} map[string]any
-// @Router /users/send-invite [post]
+// @Router /subscriptions/send-invite [post]
 func SendInvite(c *gin.Context) {
 	var inviteRequest struct {
-		Email          string `json:"email" binding:"required"`
-		OrganizationID uint   `json:"organization_id" binding:"required"`
+		Email                string `json:"email" binding:"required"`
+		OrganizationID       uint   `json:"organization_id" binding:"required"`
+		StripeSubscriptionID string `json:"stripe_subscription_id" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&inviteRequest); err != nil {
@@ -335,10 +346,11 @@ func SendInvite(c *gin.Context) {
 	}
 
 	invite := models.UserInvite{
-		Email:          inviteRequest.Email,
-		OrganizationID: inviteRequest.OrganizationID,
-		InviteToken:    uuid.New().String(),
-		IsAccepted:     false,
+		Email:                inviteRequest.Email,
+		OrganizationID:       inviteRequest.OrganizationID,
+		InviteToken:          uuid.New().String(),
+		IsAccepted:           false,
+		StripeSubscriptionID: inviteRequest.StripeSubscriptionID,
 	}
 
 	if err := config.DB.Create(&invite).Error; err != nil {
@@ -347,7 +359,7 @@ func SendInvite(c *gin.Context) {
 	}
 
 	// TODO: Send invite email to user with invite.InviteToken
-
+	fmt.Println(invite.InviteToken)
 	c.JSON(http.StatusOK, gin.H{"message": "Invite sent successfully"})
 }
 
@@ -360,14 +372,14 @@ type AcceptInviteReq struct {
 // AcceptInvite godoc
 // @Summary Accept an invite to join the organization
 // @Description Accept an invite and create a user in the organization
-// @Tags users
+// @Tags subscriptions
 // @Accept json
 // @Produce json
 // @Param data body AcceptInviteReq true "body"
 // @Success 200 {object} map[string]any
 // @Failure 400 {object} map[string]any
 // @Failure 500 {object} map[string]any
-// @Router /users/accept-invite [post]
+// @Router /subscriptions/accept-invite [post]
 func AcceptInvite(c *gin.Context) {
 	var acceptRequest struct {
 		InviteToken string `json:"invite_token" binding:"required"`
@@ -398,35 +410,62 @@ func AcceptInvite(c *gin.Context) {
 		Password:         string(hashedPassword),
 		StripeCustomerID: "",
 	}
-
-	if err := config.DB.Create(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
-		return
-	}
-
-	// Create UserOrganization association
-	userOrg := models.UserOrganization{
-		UserID:         user.ID,
-		OrganizationID: invite.OrganizationID,
-	}
-
-	if err := config.DB.Create(&userOrg).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user-organization association"})
-		return
-	}
-
-	// Update the subscription to add a seat (increment quantity)
+	// Find the organization's subscription
 	var subscription models.Subscription
 	if err := config.DB.Where("organization_id = ?", invite.OrganizationID).First(&subscription).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve subscription"})
 		return
 	}
+	tx := config.DB.Begin()
 
+	if err := tx.Create(&user).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		return
+	}
+
+	// Create OrganizationUser association
+	userOrg := models.OrganizationUser{
+		UserID:               user.ID,
+		OrganizationID:       invite.OrganizationID,
+		StripeSubscriptionID: subscription.StripeSubscriptionID,
+	}
+
+	if err := tx.Create(&userOrg).Error; err != nil {
+		tx.Rollback()
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user-organization association"})
+		return
+	}
+	// Mark the invite as accepted
+	invite.IsAccepted = true
+	if err := tx.Save(&invite).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update invite"})
+		return
+	}
+	// Retrieve the subscription from Stripe
+	stripe.Key = config.GetStripeSecretKey()
+	// Retrieve the subscription from Stripe to get the correct subscription item ID
+	stripeSubscription, err := sub.Get(subscription.StripeSubscriptionID, nil)
+	if err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve Stripe subscription"})
+		return
+	}
+
+	if len(stripeSubscription.Items.Data) == 0 {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "No subscription items found in Stripe subscription"})
+		return
+	}
+
+	// Update the subscription to add a seat (increment quantity)
 	params := &stripe.SubscriptionParams{
 		Items: []*stripe.SubscriptionItemsParams{
 			{
-				ID:       stripe.String(subscription.StripeSubscriptionID),
-				Quantity: stripe.Int64(int64(subscription.Quantity + 1)),
+				ID:       stripe.String(stripeSubscription.Items.Data[0].ID),
+				Quantity: stripe.Int64(int64(stripeSubscription.Quantity + 1)),
 			},
 		},
 		ProrationBehavior: stripe.String("create_prorations"),
@@ -434,20 +473,17 @@ func AcceptInvite(c *gin.Context) {
 
 	updatedSubscription, err := sub.Update(subscription.StripeSubscriptionID, params)
 	if err != nil {
+		tx.Rollback()
+		msg := fmt.Sprintf("updatedSubscription error : %v", err)
+		println(msg)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update Stripe subscription"})
 		return
 	}
+	tx.Commit()
 
 	subscription.Quantity = int(updatedSubscription.Items.Data[0].Quantity)
 	if err := config.DB.Save(&subscription).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update subscription in database"})
-		return
-	}
-
-	// Mark the invite as accepted
-	invite.IsAccepted = true
-	if err := config.DB.Save(&invite).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update invite"})
 		return
 	}
 
@@ -466,17 +502,13 @@ type GetProratedCostReq struct {
 // @Tags subscriptions
 // @Accept json
 // @Produce json
-// @Param data body GetProratedCostReq true "body"
-// @Success 200 {object} map[string]any
-// @Failure 400 {object} map[string]any
-// @Failure 500 {object} map[string]any
+// @Param subscription body ProratedCostRequest true "Get Prorated Cost"
+// @Success 200 {object} gin.H
+// @Failure 400 {object} gin.H
+// @Failure 500 {object} gin.H
 // @Router /subscriptions/prorated-cost [post]
 func GetProratedCost(c *gin.Context) {
-	var request struct {
-		OrganizationID       uint   `json:"organization_id" binding:"required"`
-		StripeSubscriptionID string `json:"stripe_subscription_id" binding:"required"`
-		SeatCount            int    `json:"seat_count" binding:"required"`
-	}
+	var request GetProratedCostReq
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -491,17 +523,23 @@ func GetProratedCost(c *gin.Context) {
 		return
 	}
 
-	// Calculate the prorated cost
-	items := []*stripe.SubscriptionItemsParams{
-		{
-			ID:       stripe.String(subscription.Items.Data[0].ID),
-			Quantity: stripe.Int64(subscription.Items.Data[0].Quantity + int64(request.SeatCount)),
-		},
+	if len(subscription.Items.Data) == 0 {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "No subscription items found in Stripe subscription"})
+		return
 	}
 
+	subscriptionItemID := subscription.Items.Data[0].ID
+
+	// Form the parameters for the upcoming invoice
 	invoiceParams := &stripe.InvoiceParams{
-		Customer:                      stripe.String(subscription.Customer.ID),
-		SubscriptionItems:             items,
+		Customer:     stripe.String(subscription.Customer.ID),
+		Subscription: stripe.String(subscription.ID),
+		SubscriptionItems: []*stripe.SubscriptionItemsParams{
+			{
+				ID:       stripe.String(subscriptionItemID),
+				Quantity: stripe.Int64(int64(request.SeatCount)),
+			},
+		},
 		SubscriptionProrationBehavior: stripe.String("create_prorations"),
 	}
 
@@ -512,4 +550,75 @@ func GetProratedCost(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"prorated_cost": prorationInvoice.Total, "invoice": prorationInvoice})
+}
+
+// DisableUser godoc
+// @Summary Disable a user and remove their seat from the organization
+// @Description Disable a user and remove their seat from the organization without deleting the user
+// @Tags subscriptions
+// @Accept json
+// @Produce json
+// @Param request body DisableUserRequest true "Disable User"
+// @Success 200 {object} map[string]any
+// @Failure 400 {object} map[string]any
+// @Failure 500 {object} map[string]any
+// @Router /subscriptions/disable-user [post]
+func DisableUser(c *gin.Context) {
+	var request struct {
+		UserID         uint `json:"user_id" binding:"required"`
+		OrganizationID uint `json:"organization_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Retrieve the user's details
+	var user models.User
+	if err := config.DB.Where("id = ?", request.UserID).First(&user).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Retrieve the subscription from Stripe
+	stripe.Key = config.GetStripeSecretKey()
+	var subscription models.Subscription
+	if err := config.DB.Where("organization_id = ?", request.OrganizationID).First(&subscription).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve subscription"})
+		return
+	}
+
+	// Update the subscription to remove a seat (decrement quantity)
+	params := &stripe.SubscriptionParams{
+		Items: []*stripe.SubscriptionItemsParams{
+			{
+				ID:       stripe.String(subscription.StripeSubscriptionID),
+				Quantity: stripe.Int64(int64(subscription.Quantity - 1)),
+			},
+		},
+		ProrationBehavior: stripe.String("create_prorations"),
+	}
+
+	updatedSubscription, err := sub.Update(subscription.StripeSubscriptionID, params)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update Stripe subscription"})
+		return
+	}
+
+	// Disable the user
+	user.Active = false
+	if err := config.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to disable user"})
+		return
+	}
+
+	// Update the subscription details in the database
+	subscription.Quantity = int(updatedSubscription.Items.Data[0].Quantity)
+	if err := config.DB.Save(&subscription).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update subscription in database"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User disabled and seat removed successfully"})
 }
