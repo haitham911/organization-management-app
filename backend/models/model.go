@@ -30,8 +30,15 @@ type User struct {
 	MagicLinkExpiry  time.Time      `json:"magic_link_expiry"`
 	Organizations    []Organization `gorm:"many2many:organization_users;"`
 	Subscriptions    []Subscription `json:"subscriptions"`
-}
+	Active           bool           `json:"active" gorm:"default:true"` // Active status
 
+}
+type OrganizationUser struct {
+	gorm.Model
+	UserID               uint   `json:"user_id"`
+	OrganizationID       uint   `json:"organization_id"`
+	StripeSubscriptionID string `json:"stripe_subscription_id"`
+}
 type Product struct {
 	gorm.Model
 	Name        string `json:"name"`
@@ -51,16 +58,12 @@ type Subscription struct {
 	UsageLimit           int  `json:"usage_limit" gorm:"default:0"` // Example usage limit
 
 }
-type UserOrganization struct {
-	gorm.Model
-	UserID               uint   `json:"user_id"`
-	OrganizationID       uint   `json:"organization_id"`
-	StripeSubscriptionID string `json:"stripe_subscription_id"`
-}
+
 type UserInvite struct {
 	gorm.Model
-	Email          string `json:"email"`
-	OrganizationID uint   `json:"organization_id"`
-	InviteToken    string `json:"invite_token"`
-	IsAccepted     bool   `json:"is_accepted"`
+	Email                string `json:"email"`
+	OrganizationID       uint   `json:"organization_id"`
+	InviteToken          string `json:"invite_token"`
+	IsAccepted           bool   `json:"is_accepted"`
+	StripeSubscriptionID string `json:"stripe_subscription_id" binding:"required"`
 }
