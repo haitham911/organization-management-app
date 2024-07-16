@@ -38,7 +38,7 @@ func RegisterSubscriptionRoutes(r *gin.RouterGroup) {
 	subscriptionRoutes := r.Group("/subscriptions")
 	{
 		subscriptionRoutes.POST("", controllers.CreateSubscription)
-		subscriptionRoutes.GET("/subscriptions", controllers.GetSubscriptions)
+		subscriptionRoutes.GET("", controllers.GetSubscriptions)
 		subscriptionRoutes.POST("/prorated-cost", controllers.GetProratedCost)
 		subscriptionRoutes.POST("/send-invite", controllers.SendInvite)
 		subscriptionRoutes.POST("/accept-invite", controllers.AcceptInvite)
