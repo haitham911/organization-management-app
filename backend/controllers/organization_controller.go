@@ -18,9 +18,25 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type CreateOrganizationReq struct {
+	Name  string `json:"name" binding:"required"`
+	Email string `json:"email" binding:"required"`
+}
+
+// CreateOrganization godoc
+// @Summary Accept an invite to join the organization
+// @Description Accept an invite and create a user in the organization
+// @Tags organizations
+// @Accept json
+// @Produce json
+// @Param data body CreateOrganizationReq true "body"
+// @Success 200 {object} map[string]any
+// @Failure 400 {object} map[string]any
+// @Failure 500 {object} map[string]any
+// @Router /organizations [post]
 func CreateOrganization(c *gin.Context) {
-	var organization models.Organization
-	if err := c.ShouldBindJSON(&organization); err != nil {
+	var req CreateOrganizationReq
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -28,8 +44,8 @@ func CreateOrganization(c *gin.Context) {
 
 	// Create Stripe Customer
 	params := &stripe.CustomerParams{
-		Name:  stripe.String(organization.Name),
-		Email: stripe.String(organization.Email), // Assuming the organization has an email field
+		Name:  stripe.String(req.Name),
+		Email: stripe.String(req.Email), // Assuming the organization has an email field
 	}
 	stripeCustomer, err := customer.New(params)
 	if err != nil {
@@ -38,9 +54,13 @@ func CreateOrganization(c *gin.Context) {
 		return
 	}
 
-	organization.StripeCustomerID = stripeCustomer.ID
-	config.DB.Create(&organization)
-	c.JSON(http.StatusOK, organization)
+	org := models.Organization{
+		Name:             req.Name,
+		Email:            req.Email,
+		StripeCustomerID: stripeCustomer.ID,
+	}
+	config.DB.Create(&org)
+	c.JSON(http.StatusOK, org)
 }
 func GetOrganizations(c *gin.Context) {
 	var organizations []models.Organization
@@ -496,17 +516,6 @@ type GetProratedCostReq struct {
 	SeatCount            int    `json:"seat_count" binding:"required"`
 }
 
-// GetProratedCost godoc
-// @Summary Get the prorated cost for adding a seat to a subscription
-// @Description Get the prorated cost for adding a seat to a subscription
-// @Tags subscriptions
-// @Accept json
-// @Produce json
-// @Param subscription body ProratedCostRequest true "Get Prorated Cost"
-// @Success 200 {object} gin.H
-// @Failure 400 {object} gin.H
-// @Failure 500 {object} gin.H
-// @Router /subscriptions/prorated-cost [post]
 func GetProratedCost(c *gin.Context) {
 	var request GetProratedCostReq
 
