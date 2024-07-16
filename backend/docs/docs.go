@@ -39,7 +39,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Organization"
+                            "$ref": "#/definitions/controllers.CreateOrganizationReq"
                         }
                     }
                 ],
@@ -405,6 +405,21 @@ const docTemplate = `{
                 }
             }
         },
+        "controllers.CreateOrganizationReq": {
+            "type": "object",
+            "required": [
+                "email",
+                "name"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "controllers.DisableUserRequest": {
             "type": "object",
             "required": [
@@ -449,9 +464,6 @@ const docTemplate = `{
                     "type": "integer"
                 }
             }
-        },
-        "models.Organization": {
-            "type": "object"
         }
     },
     "securityDefinitions": {

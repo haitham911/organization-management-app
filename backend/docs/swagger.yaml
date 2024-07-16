@@ -24,6 +24,16 @@ definitions:
     required:
     - stripe_subscription_id
     type: object
+  controllers.CreateOrganizationReq:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+    required:
+    - email
+    - name
+    type: object
   controllers.DisableUserRequest:
     properties:
       organization_id:
@@ -54,8 +64,6 @@ definitions:
     - organization_id
     - user_id
     type: object
-  models.Organization:
-    type: object
 info:
   contact:
     name: Haitham
@@ -75,7 +83,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/models.Organization'
+          $ref: '#/definitions/controllers.CreateOrganizationReq'
       produces:
       - application/json
       responses:
