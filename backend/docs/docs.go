@@ -19,6 +19,55 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/organizations": {
+            "post": {
+                "description": "Accept an invite and create a user in the organization",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "organizations"
+                ],
+                "summary": "Accept an invite to join the organization",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Organization"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/subscription-info": {
             "get": {
                 "description": "Retrieve the number of members in an organization and how many subscriptions are left",
@@ -220,55 +269,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/subscriptions/prorated-cost": {
-            "post": {
-                "description": "Get the prorated cost for adding a seat to a subscription",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "subscriptions"
-                ],
-                "summary": "Get the prorated cost for adding a seat to a subscription",
-                "parameters": [
-                    {
-                        "description": "body",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controllers.GetProratedCostReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/subscriptions/remove-user": {
             "post": {
                 "description": "Remove a user from an organization and update the subscription",
@@ -420,25 +420,6 @@ const docTemplate = `{
                 }
             }
         },
-        "controllers.GetProratedCostReq": {
-            "type": "object",
-            "required": [
-                "organization_id",
-                "seat_count",
-                "stripe_subscription_id"
-            ],
-            "properties": {
-                "organization_id": {
-                    "type": "integer"
-                },
-                "seat_count": {
-                    "type": "integer"
-                },
-                "stripe_subscription_id": {
-                    "type": "string"
-                }
-            }
-        },
         "controllers.InviteReq": {
             "type": "object",
             "required": [
@@ -468,6 +449,9 @@ const docTemplate = `{
                     "type": "integer"
                 }
             }
+        },
+        "models.Organization": {
+            "type": "object"
         }
     },
     "securityDefinitions": {

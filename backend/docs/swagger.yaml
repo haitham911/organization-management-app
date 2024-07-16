@@ -34,19 +34,6 @@ definitions:
     - organization_id
     - user_id
     type: object
-  controllers.GetProratedCostReq:
-    properties:
-      organization_id:
-        type: integer
-      seat_count:
-        type: integer
-      stripe_subscription_id:
-        type: string
-    required:
-    - organization_id
-    - seat_count
-    - stripe_subscription_id
-    type: object
   controllers.InviteReq:
     properties:
       email:
@@ -67,6 +54,8 @@ definitions:
     - organization_id
     - user_id
     type: object
+  models.Organization:
+    type: object
 info:
   contact:
     name: Haitham
@@ -75,6 +64,39 @@ info:
   title: organization management
   version: "1.0"
 paths:
+  /organizations:
+    post:
+      consumes:
+      - application/json
+      description: Accept an invite and create a user in the organization
+      parameters:
+      - description: body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.Organization'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Accept an invite to join the organization
+      tags:
+      - organizations
   /organizations/subscription-info:
     get:
       consumes:
@@ -211,39 +233,6 @@ paths:
             additionalProperties: true
             type: object
       summary: Disable a user and remove their seat from the organization
-      tags:
-      - subscriptions
-  /subscriptions/prorated-cost:
-    post:
-      consumes:
-      - application/json
-      description: Get the prorated cost for adding a seat to a subscription
-      parameters:
-      - description: body
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/controllers.GetProratedCostReq'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get the prorated cost for adding a seat to a subscription
       tags:
       - subscriptions
   /subscriptions/remove-user:

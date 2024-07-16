@@ -18,6 +18,17 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// CreateOrganization godoc
+// @Summary Accept an invite to join the organization
+// @Description Accept an invite and create a user in the organization
+// @Tags organizations
+// @Accept json
+// @Produce json
+// @Param data body models.Organization true "body"
+// @Success 200 {object} map[string]any
+// @Failure 400 {object} map[string]any
+// @Failure 500 {object} map[string]any
+// @Router /organizations [post]
 func CreateOrganization(c *gin.Context) {
 	var organization models.Organization
 	if err := c.ShouldBindJSON(&organization); err != nil {
@@ -496,17 +507,6 @@ type GetProratedCostReq struct {
 	SeatCount            int    `json:"seat_count" binding:"required"`
 }
 
-// GetProratedCost godoc
-// @Summary Get the prorated cost for adding a seat to a subscription
-// @Description Get the prorated cost for adding a seat to a subscription
-// @Tags subscriptions
-// @Accept json
-// @Produce json
-// @Param subscription body ProratedCostRequest true "Get Prorated Cost"
-// @Success 200 {object} gin.H
-// @Failure 400 {object} gin.H
-// @Failure 500 {object} gin.H
-// @Router /subscriptions/prorated-cost [post]
 func GetProratedCost(c *gin.Context) {
 	var request GetProratedCostReq
 
