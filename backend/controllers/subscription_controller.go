@@ -13,16 +13,28 @@ import (
 	"github.com/stripe/stripe-go/v72/sub"
 )
 
-func CreateSubscription(c *gin.Context) {
-	var subscriptionRequest struct {
-		UserID          *uint  `json:"user_id"`
-		OrganizationID  *uint  `json:"organization_id" binding:"required"`
-		PriceID         string `json:"price_id" binding:"required"`
-		Quantity        int    `json:"quantity" binding:"required"`
-		PaymentMethodID string `json:"payment_method_id" binding:"required"`
-		ProductID       uint   `json:"product_id" binding:"required"`
-	}
+type subscriptionRequest struct {
+	UserID          *uint  `json:"user_id"`
+	OrganizationID  *uint  `json:"organization_id" binding:"required"`
+	PriceID         string `json:"price_id" binding:"required" example:"price_1PVoH4Lq8P7MVUmbz4NnEDsW"`
+	Quantity        int    `json:"quantity" binding:"required" example:"1"`
+	PaymentMethodID string `json:"payment_method_id" binding:"required"`
+	ProductID       uint   `json:"product_id" binding:"required"`
+}
 
+// AddSeat godoc
+// @Summary Create subscription
+// @Description  Create subscription
+// @Tags subscriptions
+// @Accept json
+// @Produce json
+// @Param subscription body subscriptionRequest true "subscriptionRequest"
+// @Success 200 {object} map[string]any
+// @Failure 400 {object} map[string]any
+// @Failure 500 {object} map[string]any
+// @Router /subscriptions [post]
+func CreateSubscription(c *gin.Context) {
+	var subscriptionRequest subscriptionRequest
 	if err := c.ShouldBindJSON(&subscriptionRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

@@ -24,8 +24,8 @@ type CreateOrganizationReq struct {
 }
 
 // CreateOrganization godoc
-// @Summary Accept an invite to join the organization
-// @Description Accept an invite and create a user in the organization
+// @Summary create organization
+// @Description create organization
 // @Tags organizations
 // @Accept json
 // @Produce json
@@ -337,8 +337,9 @@ func AddSeat(c *gin.Context) {
 }
 
 type InviteReq struct {
-	Email          string `json:"email" binding:"required"`
-	OrganizationID uint   `json:"organization_id" binding:"required"`
+	Email                string `json:"email" binding:"required"`
+	OrganizationID       uint   `json:"organization_id" binding:"required"`
+	StripeSubscriptionID string `json:"stripe_subscription_id" binding:"required"`
 }
 
 // SendInvite godoc

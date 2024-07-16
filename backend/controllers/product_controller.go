@@ -50,6 +50,18 @@ func ListProducts(c *gin.Context) {
 
 	c.JSON(http.StatusOK, products)
 }
+
+// ListProductsWithPrices godoc
+// @Summary Get List Products With Prices
+// @Description Get List Products With Prices
+// @Tags product
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]any
+// @Failure 400 {object} map[string]any
+// @Failure 404 {object} map[string]any
+// @Failure 500 {object} map[string]any
+// @Router /products [get]
 func ListProductsWithPrices(c *gin.Context) {
 	params := &stripe.ProductListParams{}
 	params.Filters.AddFilter("active", "", "true")

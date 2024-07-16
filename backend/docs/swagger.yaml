@@ -50,9 +50,12 @@ definitions:
         type: string
       organization_id:
         type: integer
+      stripe_subscription_id:
+        type: string
     required:
     - email
     - organization_id
+    - stripe_subscription_id
     type: object
   controllers.RemoveUserReq:
     properties:
@@ -63,6 +66,29 @@ definitions:
     required:
     - organization_id
     - user_id
+    type: object
+  controllers.subscriptionRequest:
+    properties:
+      organization_id:
+        type: integer
+      payment_method_id:
+        type: string
+      price_id:
+        example: price_1PVoH4Lq8P7MVUmbz4NnEDsW
+        type: string
+      product_id:
+        type: integer
+      quantity:
+        example: 1
+        type: integer
+      user_id:
+        type: integer
+    required:
+    - organization_id
+    - payment_method_id
+    - price_id
+    - product_id
+    - quantity
     type: object
 info:
   contact:
@@ -76,7 +102,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Accept an invite and create a user in the organization
+      description: create organization
       parameters:
       - description: body
         in: body
@@ -102,7 +128,7 @@ paths:
           schema:
             additionalProperties: true
             type: object
-      summary: Accept an invite to join the organization
+      summary: create organization
       tags:
       - organizations
   /organizations/subscription-info:
@@ -143,6 +169,70 @@ paths:
       summary: Get the number of members and remaining subscriptions for an organization
       tags:
       - organizations
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: Get List Products With Prices
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get List Products With Prices
+      tags:
+      - product
+  /subscriptions:
+    post:
+      consumes:
+      - application/json
+      description: Create subscription
+      parameters:
+      - description: subscriptionRequest
+        in: body
+        name: subscription
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.subscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create subscription
+      tags:
+      - subscriptions
   /subscriptions/accept-invite:
     post:
       consumes:

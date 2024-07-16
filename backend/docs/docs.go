@@ -21,7 +21,7 @@ const docTemplate = `{
     "paths": {
         "/organizations": {
             "post": {
-                "description": "Accept an invite and create a user in the organization",
+                "description": "create organization",
                 "consumes": [
                     "application/json"
                 ],
@@ -31,7 +31,7 @@ const docTemplate = `{
                 "tags": [
                     "organizations"
                 ],
-                "summary": "Accept an invite to join the organization",
+                "summary": "create organization",
                 "parameters": [
                     {
                         "description": "body",
@@ -107,6 +107,100 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/products": {
+            "get": {
+                "description": "Get List Products With Prices",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "product"
+                ],
+                "summary": "Get List Products With Prices",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/subscriptions": {
+            "post": {
+                "description": "Create subscription",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "Create subscription",
+                "parameters": [
+                    {
+                        "description": "subscriptionRequest",
+                        "name": "subscription",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.subscriptionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -439,7 +533,8 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
-                "organization_id"
+                "organization_id",
+                "stripe_subscription_id"
             ],
             "properties": {
                 "email": {
@@ -447,6 +542,9 @@ const docTemplate = `{
                 },
                 "organization_id": {
                     "type": "integer"
+                },
+                "stripe_subscription_id": {
+                    "type": "string"
                 }
             }
         },
@@ -459,6 +557,38 @@ const docTemplate = `{
             "properties": {
                 "organization_id": {
                     "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "controllers.subscriptionRequest": {
+            "type": "object",
+            "required": [
+                "organization_id",
+                "payment_method_id",
+                "price_id",
+                "product_id",
+                "quantity"
+            ],
+            "properties": {
+                "organization_id": {
+                    "type": "integer"
+                },
+                "payment_method_id": {
+                    "type": "string"
+                },
+                "price_id": {
+                    "type": "string",
+                    "example": "price_1PVoH4Lq8P7MVUmbz4NnEDsW"
+                },
+                "product_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer",
+                    "example": 1
                 },
                 "user_id": {
                     "type": "integer"
