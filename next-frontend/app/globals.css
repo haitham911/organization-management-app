@@ -74,3 +74,11 @@
       @apply bg-background text-foreground;
     }
   }
+
+  .auth-cover {
+    background-image: url('/img-architecting-choices.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: right;
+  }
+  
