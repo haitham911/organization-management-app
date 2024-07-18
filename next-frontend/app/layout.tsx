@@ -7,6 +7,7 @@ const fontSans = FontSans({
   variable: "--font-sans",
 });
 import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "User Management",
@@ -26,7 +27,8 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        <main>{children}</main>
+        <Toaster />
+        <main className="bg-gray-50 h-screen">{children}</main>
       </body>
     </html>
   );
