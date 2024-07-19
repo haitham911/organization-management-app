@@ -8,6 +8,7 @@ const fontSans = FontSans({
 });
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
+import AuthProvider from "@/lib/auth/authProvider";
 
 export const metadata: Metadata = {
   title: "User Management",
@@ -21,15 +22,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={cn(
-          "min-h-screen bg-background font-sans antialiased",
-          fontSans.variable
-        )}
-      >
-        <Toaster />
-        <main className="bg-gray-50 h-screen">{children}</main>
-      </body>
+      <AuthProvider>
+        {" "}
+        <body
+          className={cn(
+            "min-h-screen bg-background font-sans antialiased",
+            fontSans.variable
+          )}
+        >
+          <Toaster />
+          <main className="bg-gray-50 h-screen">{children}</main>
+        </body>
+      </AuthProvider>
     </html>
   );
 }
