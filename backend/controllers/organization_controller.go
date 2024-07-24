@@ -29,6 +29,7 @@ type CreateOrganizationReq struct {
 // @Tags organizations
 // @Accept json
 // @Produce json
+// @Security Bearer
 // @Param data body CreateOrganizationReq true "body"
 // @Success 200 {object} map[string]any
 // @Failure 400 {object} map[string]any
@@ -137,6 +138,7 @@ func CanAddMoreSubscriptions(c *gin.Context) {
 // @Tags organizations
 // @Accept json
 // @Produce json
+// @Security Bearer
 // @Param organization_id query uint true "Organization ID"
 // @Success 200 {object} map[string]any
 // @Failure 400 {object} map[string]any
@@ -617,7 +619,7 @@ func DisableUser(c *gin.Context) {
 	}
 
 	// Disable the user
-	user.Active = false
+	*user.Active = false
 	if err := config.DB.Save(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to disable user"})
 		return

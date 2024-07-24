@@ -7,6 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
+	github.com/resend/resend-go/v2 v2.10.0
 	github.com/sendgrid/sendgrid-go v3.14.0+incompatible
 	github.com/stripe/stripe-go v70.15.0+incompatible
 	github.com/stripe/stripe-go/v72 v72.122.0

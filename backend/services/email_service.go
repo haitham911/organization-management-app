@@ -1,20 +1,29 @@
 package services
 
 import (
-	"os"
+	"log"
 
-	"github.com/sendgrid/sendgrid-go"
-	"github.com/sendgrid/sendgrid-go/helpers/mail"
+	"github.com/resend/resend-go/v2"
 )
 
-func SendEmail(toEmail string, link string) error {
-	from := mail.NewEmail("Your App Name", "your-email@example.com")
-	subject := "You're Invited!"
-	to := mail.NewEmail("User", toEmail)
-	plainTextContent := "Click the following link to join: " + link
-	htmlContent := "<p>Click the following link to join: <a href=\"" + link + "\">Join Now</a></p>"
-	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
-	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
-	_, err := client.Send(message)
+func SendEmail(toEmail, subject, plainTextContent, htmlContent string) error {
+
+	apiKey := "re_G6Epm53o_8kbG4sjrpTJRkMRHDzEAbG5W"
+
+	client := resend.NewClient(apiKey)
+
+	params := &resend.SendEmailRequest{
+		From:    "onboarding@resend.dev",
+		To:      []string{toEmail},
+		Subject: subject,
+		Html:    htmlContent,
+		Text:    plainTextContent,
+	}
+
+	_, err := client.Emails.Send(params)
+	if err != nil {
+		log.Println(err)
+	}
+
 	return err
 }

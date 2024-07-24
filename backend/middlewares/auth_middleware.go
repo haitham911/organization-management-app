@@ -34,11 +34,9 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 		user, exists := c.Get("user")
 		if !exists {
-			var user models.User
-			if err := config.DB.Where("id = ?", claims.UserID).Preload("Organizations").Preload("Subscriptions").Preload("Subscriptions").First(&user).Error; err != nil {
-				c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-				return
-			}
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Token"})
+			c.Abort()
+			return
 		}
 		c.Set("userID", claims.UserID)
 		c.Set("userEmail", claims.Email)
@@ -54,8 +52,21 @@ func AdminOnly() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
-		if user.(*models.User).Role != "Admin" {
+		orgID, ok := c.Get("orgRequest")
+		if !ok {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden orgID"})
+			c.Abort()
+			return
+		}
+		userOrgs := user.(*utils.Claims).Organizations
+		role := ""
+		for _, v := range userOrgs {
+			if orgID.(uint) == v.Organization.ID {
+				role = v.Role
+				break
+			}
+		}
+		if role != "Admin" {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
 			c.Abort()
 			return

@@ -17,16 +17,23 @@ func RegisterOrganizationRoutes(r *gin.RouterGroup) {
 
 }
 func RegisterUserRoutes(r *gin.RouterGroup) {
-	userRoutes := r.Group("/users")
+	userAuthRoutes := r.Group("/users")
 	{
-		userRoutes.Use(middlewares.AuthMiddleware())
-		userRoutes.POST("", middlewares.AdminOnly(), controllers.CreateUser)
-		userRoutes.GET("", middlewares.AdminOnly(), controllers.GetUsers)
-		userRoutes.POST("/user/free", controllers.CreateUserFreeSubscription)
-		userRoutes.POST("/user/subscription", controllers.CreateUserWithSubscription)
-		userRoutes.POST("/user/upgrade", controllers.Upgrade)
-		userRoutes.POST("/user/downgrade", controllers.Downgrade)
+		userAuthRoutes.Use(middlewares.AuthMiddleware())
+		userAuthRoutes.POST("", middlewares.AdminOnly(), controllers.CreateUser)
+		userAuthRoutes.GET("", middlewares.AdminOnly(), controllers.GetUsers)
+		userAuthRoutes.POST("/user/free", controllers.CreateUserFreeSubscription)
+		userAuthRoutes.POST("/user/subscription", controllers.CreateUserWithSubscription)
+		userAuthRoutes.POST("/user/upgrade", controllers.Upgrade)
+		userAuthRoutes.POST("/user/downgrade", controllers.Downgrade)
 
+	}
+	userRoutes := r.Group("/user")
+	{
+		userRoutes.POST("/signup-magic-link", controllers.SignUpWithMagicLink)
+		userRoutes.POST("/complete-signup", controllers.CompleteSignup)
+		userRoutes.POST("/login-magic-link", controllers.LoginWithMagicLink)
+		userRoutes.POST("/login", controllers.MagicLinkLogin)
 	}
 
 }
@@ -49,6 +56,7 @@ func RegisterSubscriptionRoutes(r *gin.RouterGroup) {
 func RegisterAuthRoutes(r *gin.RouterGroup) {
 	r.POST("/invite", controllers.InviteUser)
 	r.GET("/verify-magic-link", controllers.VerifyMagicLink)
+	r.POST("/singup", controllers.InviteUser)
 }
 func RegisterWebhookRoutes(r *gin.RouterGroup) {
 	r.POST("/webhook", controllers.HandleWebhook)

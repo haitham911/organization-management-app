@@ -25,19 +25,22 @@ type User struct {
 	Name             string         `json:"name"`
 	Email            string         `json:"email" gorm:"unique"`
 	Password         string         `json:"password"`
-	Role             string         `json:"role"` // Admin or User
 	MagicLinkToken   string         `json:"magic_link_token"`
 	MagicLinkExpiry  time.Time      `json:"magic_link_expiry"`
 	Organizations    []Organization `gorm:"many2many:organization_users;"`
 	Subscriptions    []Subscription `json:"subscriptions"`
-	Active           bool           `json:"active" gorm:"default:true"` // Active status
+	Active           *bool          `json:"active" gorm:"default:false"` // Active status
 
 }
+
 type OrganizationUser struct {
 	gorm.Model
-	UserID               uint   `json:"user_id"`
-	OrganizationID       uint   `json:"organization_id"`
-	StripeSubscriptionID string `json:"stripe_subscription_id"`
+	UserID               uint         `json:"user_id"`
+	OrganizationID       uint         `json:"organization_id"`
+	StripeSubscriptionID string       `json:"stripe_subscription_id"`
+	Role                 string       `json:"role"` // Role in the organization
+	Organization         Organization `json:"organization"`
+	User                 User         `json:"user"`
 }
 type Product struct {
 	gorm.Model
@@ -66,4 +69,9 @@ type UserInvite struct {
 	InviteToken          string `json:"invite_token"`
 	IsAccepted           bool   `json:"is_accepted"`
 	StripeSubscriptionID string `json:"stripe_subscription_id" binding:"required"`
+}
+type UserWithRoles struct {
+	Role                    string       `json:"role"`
+	Organization            Organization `json:"organization"`
+	OrgStripeSubscriptionID string       `json:"org_subscription_id"`
 }
