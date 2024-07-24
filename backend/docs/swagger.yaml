@@ -90,6 +90,43 @@ definitions:
     - product_id
     - quantity
     type: object
+  form.EmailRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  form.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  form.InviteUserRequest:
+    properties:
+      email:
+        type: string
+      organization_id:
+        type: integer
+      role:
+        type: string
+    required:
+    - email
+    - organization_id
+    - role
+    type: object
+  form.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  form.PasswordRequest:
+    properties:
+      password:
+        type: string
+    required:
+    - password
+    type: object
 info:
   contact:
     name: Haitham
@@ -128,6 +165,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - Bearer: []
       summary: create organization
       tags:
       - organizations
@@ -166,6 +205,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - Bearer: []
       summary: Get the number of members and remaining subscriptions for an organization
       tags:
       - organizations
@@ -399,6 +440,190 @@ paths:
       summary: Send an invite to a user
       tags:
       - subscriptions
+  /users/{user_id}/roles:
+    get:
+      consumes:
+      - application/json
+      description: Get user information with roles in organizations
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+      summary: Get user information with roles in organizations
+      tags:
+      - users
+  /users/complete-signup:
+    post:
+      consumes:
+      - application/json
+      description: Complete the signup process using the magic link
+      parameters:
+      - description: Magic Link Token
+        in: query
+        name: token
+        required: true
+        type: string
+      - description: Password
+        in: body
+        name: password
+        required: true
+        schema:
+          $ref: '#/definitions/form.PasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/form.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+      summary: Complete the signup process
+      tags:
+      - users
+  /users/invite:
+    post:
+      consumes:
+      - application/json
+      description: Invite a user to an organization by sending a magic link to their
+        email
+      parameters:
+      - description: Invite User
+        in: body
+        name: invite
+        required: true
+        schema:
+          $ref: '#/definitions/form.InviteUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/form.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+      summary: Invite a user to an organization with role Admin or Member
+      tags:
+      - users
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Complete the login process using the magic link
+      parameters:
+      - description: Magic Link Token
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/form.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+      summary: Complete the login process using the magic link
+      tags:
+      - users
+  /users/login-magic-link:
+    post:
+      consumes:
+      - application/json
+      description: Login with a magic link sent to the user's email
+      parameters:
+      - description: Email
+        in: body
+        name: email
+        required: true
+        schema:
+          $ref: '#/definitions/form.EmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/form.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+      summary: Login with a magic link
+      tags:
+      - users
+  /users/signup-magic-link:
+    post:
+      consumes:
+      - application/json
+      description: Sign up with a magic link sent to the user's email
+      parameters:
+      - description: Email
+        in: body
+        name: email
+        required: true
+        schema:
+          $ref: '#/definitions/form.EmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/form.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+      summary: Sign up with a magic link
+      tags:
+      - users
 securityDefinitions:
   Bearer:
     in: header

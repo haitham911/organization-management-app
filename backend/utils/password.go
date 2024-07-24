@@ -1,6 +1,10 @@
 package utils
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"strings"
+
+	"golang.org/x/crypto/bcrypt"
+)
 
 // HashPassword hashes a plain text password.
 func HashPassword(password string) (string, error) {
@@ -12,4 +16,13 @@ func HashPassword(password string) (string, error) {
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
+}
+func RemoveLastSlash(url string) string {
+	// Check if the URL ends with a slash
+	if strings.HasSuffix(url, "/") {
+		// Remove the last slash
+		return strings.TrimSuffix(url, "/")
+	}
+	// Return the URL as is if it does not end with a slash
+	return url
 }

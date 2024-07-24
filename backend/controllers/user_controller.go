@@ -63,7 +63,7 @@ func CreateUser(c *gin.Context) {
 		Name:     userRequest.Name,
 		Email:    userRequest.Email,
 		Password: string(hashedPassword),
-		Role:     userRequest.Role,
+		//Role:     userRequest.Role,
 	}
 
 	if err := config.DB.Create(&user).Error; err != nil {
@@ -148,7 +148,7 @@ func CreateUserFreeSubscription(c *gin.Context) {
 		Name:     userRequest.Name,
 		Email:    userRequest.Email,
 		Password: string(hashedPassword),
-		Role:     userRequest.Role,
+		//Role:     userRequest.Role,
 	}
 
 	if err := config.DB.Create(&user).Error; err != nil {
@@ -205,7 +205,7 @@ func CreateUserWithSubscription(c *gin.Context) {
 		Name:     userRequest.Name,
 		Email:    userRequest.Email,
 		Password: string(hashedPassword),
-		Role:     userRequest.Role,
+		//Role:     userRequest.Role,
 	}
 
 	if err := config.DB.Create(&user).Error; err != nil {
