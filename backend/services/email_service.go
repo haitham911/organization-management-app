@@ -1,15 +1,20 @@
 package services
 
 import (
+	"errors"
 	"log"
+	"os"
 
 	"github.com/resend/resend-go/v2"
 )
 
 func SendEmail(toEmail, subject, plainTextContent, htmlContent string) error {
 
-	apiKey := "re_G6Epm53o_8kbG4sjrpTJRkMRHDzEAbG5W"
+	apiKey := os.Getenv("EMAIL_API_KEY")
+	if apiKey == "" {
+		return errors.New("EMAIL_API_KEY required")
 
+	}
 	client := resend.NewClient(apiKey)
 
 	params := &resend.SendEmailRequest{
