@@ -158,7 +158,7 @@ func Login(c *gin.Context) {
 // @Success 200 {object} form.MessageResponse
 // @Failure 400 {object} form.ErrorResponse
 // @Failure 500 {object} form.ErrorResponse
-// @Router /users/signup-magic-link [post]
+// @Router /user/signup-magic-link [post]
 func SignUpWithMagicLink(c *gin.Context) {
 	var request form.EmailRequest
 
@@ -186,11 +186,31 @@ func SignUpWithMagicLink(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, form.ErrorResponse{Error: "Failed to create user"})
 		return
 	}
+
 	if *user.Active {
 		c.JSON(http.StatusBadRequest, form.ErrorResponse{Error: "user email already exist and email verified"})
 		return
 	}
-	baseUrl := utils.RemoveLastSlash(os.Getenv("SERVER_URL"))
+	magicLinkToken = uuid.New().String()
+	magicLinkExpiry = time.Now().Add(15 * time.Minute)
+	active = false
+	user = models.User{
+		Email:           request.Email,
+		MagicLinkToken:  magicLinkToken,
+		MagicLinkExpiry: magicLinkExpiry,
+		Active:          &active,
+	}
+
+	if err := config.DB.Debug().Where("email=?", request.Email).Updates(&user).Error; err != nil {
+		if strings.Contains(err.Error(), "email") {
+			c.JSON(http.StatusBadRequest, form.ErrorResponse{Error: "update user already exist"})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, form.ErrorResponse{Error: "Failed to create user"})
+		return
+	}
+	baseUrl := utils.RemoveLastSlash(os.Getenv("SERVER_URL")) + "/api/v1/user"
 	subject := "Complete your sign up"
 	plainTextContent := "Click the link to verify your email: " + baseUrl + "/complete-signup?token=" + magicLinkToken
 	htmlContent := "<strong>Click the link to verify your email: <a href=\"" + baseUrl + "/complete-signup?token=" + magicLinkToken + "\">Complete Signup</a></strong>"
@@ -211,11 +231,10 @@ func SignUpWithMagicLink(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param token query string true "Magic Link Token"
-// @Param password body form.PasswordRequest true "Password"
 // @Success 200 {object} form.MessageResponse
 // @Failure 400 {object} form.ErrorResponse
 // @Failure 500 {object} form.ErrorResponse
-// @Router /users/complete-signup [post]
+// @Router /user/complete-signup [post]
 func CompleteSignup(c *gin.Context) {
 	token := c.Query("token")
 	if token == "" {
@@ -252,7 +271,7 @@ func CompleteSignup(c *gin.Context) {
 // @Success 200 {object} form.MessageResponse
 // @Failure 400 {object} form.ErrorResponse
 // @Failure 500 {object} form.ErrorResponse
-// @Router /users/login-magic-link [post]
+// @Router /user/login-magic-link [post]
 func LoginWithMagicLink(c *gin.Context) {
 	var request form.EmailRequest
 
@@ -279,7 +298,7 @@ func LoginWithMagicLink(c *gin.Context) {
 	}
 
 	subject := "Login to your account"
-	baseUrl := utils.RemoveLastSlash(os.Getenv("SERVER_URL"))
+	baseUrl := utils.RemoveLastSlash(os.Getenv("SERVER_URL")) + "/api/v1/user"
 
 	plainTextContent := "Click the link to log in: " + baseUrl + "/login?token=" + magicLinkToken
 	htmlContent := "<strong>Click the link to log in: <a href=\"" + baseUrl + "/login?token=" + magicLinkToken + "\">Login</a></strong>"
@@ -303,7 +322,7 @@ func LoginWithMagicLink(c *gin.Context) {
 // @Success 200 {object} form.MessageResponse
 // @Failure 400 {object} form.ErrorResponse
 // @Failure 500 {object} form.ErrorResponse
-// @Router /users/login [post]
+// @Router /user/login [post]
 func MagicLinkLogin(c *gin.Context) {
 	token := c.Query("token")
 	if token == "" {

@@ -28,7 +28,7 @@ func RegisterUserRoutes(r *gin.RouterGroup) {
 		userAuthRoutes.POST("/user/downgrade", controllers.Downgrade)
 
 	}
-	userRoutes := r.Group("/users")
+	userRoutes := r.Group("/user")
 	{
 		userRoutes.POST("/signup-magic-link", controllers.SignUpWithMagicLink)
 		userRoutes.POST("/complete-signup", controllers.CompleteSignup)

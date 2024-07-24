@@ -120,13 +120,6 @@ definitions:
       message:
         type: string
     type: object
-  form.PasswordRequest:
-    properties:
-      password:
-        type: string
-    required:
-    - password
-    type: object
 info:
   contact:
     name: Haitham
@@ -440,6 +433,124 @@ paths:
       summary: Send an invite to a user
       tags:
       - subscriptions
+  /user/complete-signup:
+    post:
+      consumes:
+      - application/json
+      description: Complete the signup process using the magic link
+      parameters:
+      - description: Magic Link Token
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/form.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+      summary: Complete the signup process
+      tags:
+      - users
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Complete the login process using the magic link
+      parameters:
+      - description: Magic Link Token
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/form.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+      summary: Complete the login process using the magic link
+      tags:
+      - users
+  /user/login-magic-link:
+    post:
+      consumes:
+      - application/json
+      description: Login with a magic link sent to the user's email
+      parameters:
+      - description: Email
+        in: body
+        name: email
+        required: true
+        schema:
+          $ref: '#/definitions/form.EmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/form.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+      summary: Login with a magic link
+      tags:
+      - users
+  /user/signup-magic-link:
+    post:
+      consumes:
+      - application/json
+      description: Sign up with a magic link sent to the user's email
+      parameters:
+      - description: Email
+        in: body
+        name: email
+        required: true
+        schema:
+          $ref: '#/definitions/form.EmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/form.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+      summary: Sign up with a magic link
+      tags:
+      - users
   /users/{user_id}/roles:
     get:
       consumes:
@@ -463,41 +574,6 @@ paths:
           schema:
             $ref: '#/definitions/form.ErrorResponse'
       summary: Get user information with roles in organizations
-      tags:
-      - users
-  /users/complete-signup:
-    post:
-      consumes:
-      - application/json
-      description: Complete the signup process using the magic link
-      parameters:
-      - description: Magic Link Token
-        in: query
-        name: token
-        required: true
-        type: string
-      - description: Password
-        in: body
-        name: password
-        required: true
-        schema:
-          $ref: '#/definitions/form.PasswordRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/form.MessageResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/form.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/form.ErrorResponse'
-      summary: Complete the signup process
       tags:
       - users
   /users/invite:
@@ -533,95 +609,6 @@ paths:
           schema:
             $ref: '#/definitions/form.ErrorResponse'
       summary: Invite a user to an organization with role Admin or Member
-      tags:
-      - users
-  /users/login:
-    post:
-      consumes:
-      - application/json
-      description: Complete the login process using the magic link
-      parameters:
-      - description: Magic Link Token
-        in: query
-        name: token
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/form.MessageResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/form.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/form.ErrorResponse'
-      summary: Complete the login process using the magic link
-      tags:
-      - users
-  /users/login-magic-link:
-    post:
-      consumes:
-      - application/json
-      description: Login with a magic link sent to the user's email
-      parameters:
-      - description: Email
-        in: body
-        name: email
-        required: true
-        schema:
-          $ref: '#/definitions/form.EmailRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/form.MessageResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/form.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/form.ErrorResponse'
-      summary: Login with a magic link
-      tags:
-      - users
-  /users/signup-magic-link:
-    post:
-      consumes:
-      - application/json
-      description: Sign up with a magic link sent to the user's email
-      parameters:
-      - description: Email
-        in: body
-        name: email
-        required: true
-        schema:
-          $ref: '#/definitions/form.EmailRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/form.MessageResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/form.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/form.ErrorResponse'
-      summary: Sign up with a magic link
       tags:
       - users
 securityDefinitions:
