@@ -210,7 +210,7 @@ func SignUpWithMagicLink(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, form.ErrorResponse{Error: "Failed to create user"})
 		return
 	}
-	baseUrl := utils.RemoveLastSlash(os.Getenv("SERVER_URL")) + "/api/v1/user"
+	baseUrl := utils.RemoveLastSlash(os.Getenv("FRONT_URL"))
 	subject := "Complete your sign up"
 	plainTextContent := "Click the link to verify your email: " + baseUrl + "/complete-signup?token=" + magicLinkToken
 	htmlContent := "<strong>Click the link to verify your email: <a href=\"" + baseUrl + "/complete-signup?token=" + magicLinkToken + "\">Complete Signup</a></strong>"
@@ -298,7 +298,7 @@ func LoginWithMagicLink(c *gin.Context) {
 	}
 
 	subject := "Login to your account"
-	baseUrl := utils.RemoveLastSlash(os.Getenv("SERVER_URL")) + "/api/v1/user"
+	baseUrl := utils.RemoveLastSlash(os.Getenv("FRONT_URL"))
 
 	plainTextContent := "Click the link to log in: " + baseUrl + "/login?token=" + magicLinkToken
 	htmlContent := "<strong>Click the link to log in: <a href=\"" + baseUrl + "/login?token=" + magicLinkToken + "\">Login</a></strong>"
