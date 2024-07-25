@@ -397,6 +397,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - Bearer: []
       summary: Remove a user from the organization
       tags:
       - subscriptions
@@ -609,6 +611,29 @@ paths:
           schema:
             $ref: '#/definitions/form.ErrorResponse'
       summary: Invite a user to an organization with role Admin or Member
+      tags:
+      - users
+  /users/profile:
+    get:
+      description: get logged user from token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/form.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: get logged user from token
       tags:
       - users
 securityDefinitions:

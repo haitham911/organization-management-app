@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"organization-management-app/config"
@@ -14,33 +15,32 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := c.GetHeader("Authorization")
 		if tokenString == "" {
+			err := errors.New("missing Authorization Header")
+			log.Println(err)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing Authorization Header"})
 			c.Abort()
 			return
 		}
-
-		token, err := utils.ParseToken(tokenString)
+		tokenClaim := utils.Claims{}
+		token, err := utils.ParseToken(tokenString, &tokenClaim)
 		if err != nil {
+			err := errors.New("invalid ParseToken")
+			log.Println(err)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Token"})
+			c.Abort()
+			return
+		}
+		if !token.Valid {
+			err := errors.New("invalid token")
+			log.Println(err)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Token"})
 			c.Abort()
 			return
 		}
 
-		claims, ok := token.Claims.(utils.Claims)
-		if !ok || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Token"})
-			c.Abort()
-			return
-		}
-		user, exists := c.Get("user")
-		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Token"})
-			c.Abort()
-			return
-		}
-		c.Set("userID", claims.UserID)
-		c.Set("userEmail", claims.Email)
-		c.Set("user", &user)
+		c.Set("userID", tokenClaim.UserID)
+		c.Set("userEmail", tokenClaim.Email)
+		c.Set("user", &tokenClaim)
 		c.Next()
 	}
 }

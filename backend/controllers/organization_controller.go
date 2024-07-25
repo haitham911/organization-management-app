@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"organization-management-app/config"
 	"organization-management-app/models"
+	"organization-management-app/utils"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -36,6 +37,11 @@ type CreateOrganizationReq struct {
 // @Failure 500 {object} map[string]any
 // @Router /organizations [post]
 func CreateOrganization(c *gin.Context) {
+	profile, err := utils.GetProfileFromGinCtx(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	var req CreateOrganizationReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -60,8 +66,28 @@ func CreateOrganization(c *gin.Context) {
 		Email:            req.Email,
 		StripeCustomerID: stripeCustomer.ID,
 	}
-	config.DB.Create(&org)
-	c.JSON(http.StatusOK, org)
+
+	result := config.DB.Create(&org)
+	if result.Error != nil {
+		c.JSON(http.StatusBadRequest, result.Error.Error())
+		return
+	}
+	userOrg := models.OrganizationUser{
+		UserID:         profile.UserID,
+		OrganizationID: org.ID,
+		Role:           "Admin",
+	}
+
+	config.DB.Create(&userOrg)
+	newJwt, err := utils.GenerateToken(profile.UserID)
+	if err != nil {
+		log.Println(err)
+	}
+	type JsonResponse struct {
+		Data  interface{} `json:"data"`
+		Token string      `json:"token"`
+	}
+	c.JSON(http.StatusOK, JsonResponse{Data: org, Token: newJwt})
 }
 func GetOrganizations(c *gin.Context) {
 	var organizations []models.Organization
@@ -197,7 +223,7 @@ type RemoveUserReq struct {
 // @Tags subscriptions
 // @Accept json
 // @Produce json
-//
+// @Security Bearer
 // @Param request body RemoveUserReq true "Remove User"
 // @Success 200 {object} map[string]any
 // @Failure 400 {object} map[string]any
