@@ -24,3 +24,6 @@ type InviteUserRequest struct {
 type TokenResponse struct {
 	Token string `json:"token"`
 }
+type JsonResponse struct {
+	Data interface{} `json:"data"`
+}

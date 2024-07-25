@@ -8,11 +8,13 @@ import (
 )
 
 type Organization struct {
-	gorm.Model
+	ID               uint           `gorm:"primarykey"`
+	CreatedAt        time.Time      `json:"created_at,omitempty"`
+	UpdatedAt        time.Time      `json:"updated_at,omitempty"`
 	Name             string         `json:"name"`
 	Email            string         `json:"email" gorm:"unique"`
 	StripeCustomerID string         `json:"stripe_customer_id"` // Stripe Customer ID for billing
-	Users            []User         `gorm:"many2many:organization_users;"`
+	Users            []User         `gorm:"many2many:organization_users;" json:"users"`
 	Subscriptions    []Subscription `json:"subscriptions"`
 }
 type User struct {
@@ -24,7 +26,7 @@ type User struct {
 	StripeCustomerID string         `json:"stripe_customer_id"` // Stripe Customer ID for billing
 	Name             string         `json:"name"`
 	Email            string         `json:"email" gorm:"unique"`
-	Password         string         `json:"password"`
+	Password         string         `json:"-"`
 	MagicLinkToken   string         `json:"magic_link_token"`
 	MagicLinkExpiry  time.Time      `json:"magic_link_expiry"`
 	Organizations    []Organization `gorm:"many2many:organization_users;"`
@@ -34,7 +36,9 @@ type User struct {
 }
 
 type OrganizationUser struct {
-	gorm.Model
+	ID                   uint `gorm:"primarykey"`
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
 	UserID               uint         `json:"user_id"`
 	OrganizationID       uint         `json:"organization_id"`
 	StripeSubscriptionID string       `json:"stripe_subscription_id"`
@@ -49,7 +53,9 @@ type Product struct {
 	PriceAmount int64  `json:"price_amount"` // Price per user in cents
 }
 type Subscription struct {
-	gorm.Model
+	ID                   uint `gorm:"primarykey"`
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
 	UserID               *uint `json:"user_id"`
 	OrganizationID       *uint
 	PriceId              string
@@ -63,7 +69,9 @@ type Subscription struct {
 }
 
 type UserInvite struct {
-	gorm.Model
+	ID                   uint `gorm:"primarykey"`
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
 	Email                string `json:"email"`
 	OrganizationID       uint   `json:"organization_id"`
 	InviteToken          string `json:"invite_token"`

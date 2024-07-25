@@ -32,7 +32,11 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading .env file")
 	}
-
+	// Verify the JWT_SECRET environment variable is set
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatalf("JWT_SECRET environment variable not set")
+	}
 	config.InitDB()
 	config.InitStripe()
 

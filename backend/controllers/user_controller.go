@@ -4,7 +4,9 @@ import (
 	"log"
 	"net/http"
 	"organization-management-app/config"
+	"organization-management-app/form"
 	"organization-management-app/models"
+	"organization-management-app/utils"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -478,4 +480,25 @@ func DowngradeOrganizationSubscription(c *gin.Context) {
 type DisableUserRequest struct {
 	UserID         uint `json:"user_id" binding:"required"`
 	OrganizationID uint `json:"organization_id" binding:"required"`
+}
+
+// GetProfile godoc
+// @Summary get logged user from token
+// @Description get logged user from token
+// @Tags users
+// @Produce json
+// @Security Bearer
+// @Success 200 {object} form.MessageResponse
+// @Failure 400 {object} form.ErrorResponse
+// @Failure 500 {object} form.ErrorResponse
+// @Router /users/profile [get]
+func GetProfile(c *gin.Context) {
+	profile, err := utils.GetProfileFromGinCtx(c)
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, form.ErrorResponse{Error: "Failed to get profile from token"})
+		return
+	}
+	c.JSON(http.StatusOK, form.JsonResponse{Data: profile})
+
 }

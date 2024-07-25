@@ -84,7 +84,7 @@ func VerifyMagicLink(c *gin.Context) {
 		return
 	}
 
-	jwtToken, err := utils.GenerateToken(user)
+	jwtToken, err := utils.GenerateToken(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
@@ -139,7 +139,7 @@ func Login(c *gin.Context) {
 	}
 
 	// Generate token
-	token, err := utils.GenerateToken(user)
+	token, err := utils.GenerateToken(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
@@ -346,7 +346,7 @@ func MagicLinkLogin(c *gin.Context) {
 	}
 
 	//Generate JWT token or session here and return to the user
-	token, err := utils.GenerateToken(user)
+	token, err := utils.GenerateToken(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, form.ErrorResponse{Error: "Failed to generate token"})
 		return

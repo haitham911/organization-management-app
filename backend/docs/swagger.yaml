@@ -128,7 +128,7 @@ info:
   title: organization management
   version: "1.0"
 paths:
-  /organizations:
+  /organization:
     post:
       consumes:
       - application/json
@@ -170,9 +170,9 @@ paths:
       description: Retrieve the number of members in an organization and how many
         subscriptions are left
       parameters:
-      - description: Organization ID
+      - description: Organization Id
         in: query
-        name: organization_id
+        name: orgId
         required: true
         type: integer
       produces:
@@ -201,6 +201,45 @@ paths:
       security:
       - Bearer: []
       summary: Get the number of members and remaining subscriptions for an organization
+      tags:
+      - organizations
+  /organizations/users:
+    get:
+      consumes:
+      - application/json
+      description: Get the Organizations users
+      parameters:
+      - description: Organization Id
+        in: query
+        name: orgId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get the Organizations users
       tags:
       - organizations
   /products:
@@ -397,6 +436,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - Bearer: []
       summary: Remove a user from the organization
       tags:
       - subscriptions
@@ -609,6 +650,29 @@ paths:
           schema:
             $ref: '#/definitions/form.ErrorResponse'
       summary: Invite a user to an organization with role Admin or Member
+      tags:
+      - users
+  /users/profile:
+    get:
+      description: get logged user from token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/form.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/form.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: get logged user from token
       tags:
       - users
 securityDefinitions:

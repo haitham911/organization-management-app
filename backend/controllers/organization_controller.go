@@ -5,12 +5,16 @@ import (
 	"log"
 	"net/http"
 	"organization-management-app/config"
+	"organization-management-app/form"
 	"organization-management-app/models"
+	"organization-management-app/utils"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stripe/stripe-go/v72/customer"
+	"gorm.io/gorm"
 
 	stripe "github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/invoice"
@@ -34,8 +38,13 @@ type CreateOrganizationReq struct {
 // @Success 200 {object} map[string]any
 // @Failure 400 {object} map[string]any
 // @Failure 500 {object} map[string]any
-// @Router /organizations [post]
+// @Router /organization [post]
 func CreateOrganization(c *gin.Context) {
+	profile, err := utils.GetProfileFromGinCtx(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	var req CreateOrganizationReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -60,13 +69,65 @@ func CreateOrganization(c *gin.Context) {
 		Email:            req.Email,
 		StripeCustomerID: stripeCustomer.ID,
 	}
-	config.DB.Create(&org)
-	c.JSON(http.StatusOK, org)
+
+	result := config.DB.Create(&org)
+	if result.Error != nil {
+		c.JSON(http.StatusBadRequest, result.Error.Error())
+		return
+	}
+	userOrg := models.OrganizationUser{
+		UserID:         profile.UserID,
+		OrganizationID: org.ID,
+		Role:           "Admin",
+	}
+
+	config.DB.Create(&userOrg)
+	newJwt, err := utils.GenerateToken(profile.UserID)
+	if err != nil {
+		log.Println(err)
+	}
+	type JsonResponse struct {
+		Data  interface{} `json:"data"`
+		Token string      `json:"token"`
+	}
+	c.JSON(http.StatusOK, JsonResponse{Data: org, Token: newJwt})
 }
-func GetOrganizations(c *gin.Context) {
-	var organizations []models.Organization
-	config.DB.Preload("Users").Find(&organizations)
-	c.JSON(http.StatusOK, organizations)
+
+// GetOrganizationsUsers users godoc
+// @Summary Get the Organizations users
+// @Description  Get the Organizations users
+// @Tags organizations
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param orgId query int  true "Organization Id"
+// @Success 200 {object} map[string]any
+// @Failure 400 {object} map[string]any
+// @Failure 404 {object} map[string]any
+// @Failure 500 {object} map[string]any
+// @Router /organizations/users [get]
+func GetOrganizationsUsers(c *gin.Context) {
+	orgID := c.Query("orgId")
+	if orgID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "orgId required"})
+		return
+	}
+	orgId, err := strconv.ParseUint(orgID, 10, 64)
+	if err != nil {
+		log.Println("error parse id from string", err)
+		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden orgID"})
+		c.Abort()
+		return
+	}
+
+	var organization models.Organization
+	if err := config.DB.Preload("Users", func(db *gorm.DB) *gorm.DB {
+		return db.Select("users.id, users.name, users.email")
+	}).First(&organization, orgId).Error; err != nil {
+		c.JSON(http.StatusNotFound, form.ErrorResponse{Error: "Organization not found"})
+		return
+	}
+	c.JSON(http.StatusOK, organization)
 }
 
 // Check if an organization can add more users
@@ -139,32 +200,36 @@ func CanAddMoreSubscriptions(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security Bearer
-// @Param organization_id query uint true "Organization ID"
+// @Param orgId query int  true "Organization Id"
 // @Success 200 {object} map[string]any
 // @Failure 400 {object} map[string]any
 // @Failure 404 {object} map[string]any
 // @Failure 500 {object} map[string]any
 // @Router /organizations/subscription-info [get]
 func GetOrganizationSubscriptionInfo(c *gin.Context) {
-	var query struct {
-		OrganizationID uint `form:"organization_id" binding:"required"`
-	}
 
-	if err := c.ShouldBindQuery(&query); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	orgID := c.Query("orgId")
+	if orgID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "orgId required"})
 		return
 	}
-
+	orgId, err := strconv.ParseUint(orgID, 10, 64)
+	if err != nil {
+		log.Println("error parse id from string", err)
+		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden orgID"})
+		c.Abort()
+		return
+	}
 	// Find the organization's subscription
 	var subscription models.Subscription
-	if err := config.DB.Where("organization_id = ?", query.OrganizationID).First(&subscription).Error; err != nil {
+	if err := config.DB.Where("organization_id = ?", orgId).First(&subscription).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve subscription"})
 		return
 	}
 
 	// Count the number of members in the organization
 	var totalUsers int64
-	if err := config.DB.Model(&models.OrganizationUser{}).Where("organization_id = ?", query.OrganizationID).Count(&totalUsers).Error; err != nil {
+	if err := config.DB.Model(&models.OrganizationUser{}).Where("organization_id = ?", orgId).Count(&totalUsers).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count members"})
 		return
 	}
@@ -197,7 +262,7 @@ type RemoveUserReq struct {
 // @Tags subscriptions
 // @Accept json
 // @Produce json
-//
+// @Security Bearer
 // @Param request body RemoveUserReq true "Remove User"
 // @Success 200 {object} map[string]any
 // @Failure 400 {object} map[string]any

@@ -8,10 +8,14 @@ import (
 )
 
 func RegisterOrganizationRoutes(r *gin.RouterGroup) {
+	userOrgRoutes := r.Group("/organization", middlewares.AuthMiddleware())
+	{
+		userOrgRoutes.POST("", controllers.CreateOrganization)
+	}
 	organizationRoutes := r.Group("/organizations")
 	{
-		organizationRoutes.POST("", controllers.CreateOrganization)
-		organizationRoutes.GET("", controllers.GetOrganizations)
+		organizationRoutes.Use(middlewares.AuthMiddleware(), middlewares.AdminOnly())
+		organizationRoutes.GET("users", controllers.GetOrganizationsUsers)
 		organizationRoutes.GET("/subscription-info", controllers.GetOrganizationSubscriptionInfo)
 	}
 
@@ -26,6 +30,7 @@ func RegisterUserRoutes(r *gin.RouterGroup) {
 		userAuthRoutes.POST("/user/subscription", controllers.CreateUserWithSubscription)
 		userAuthRoutes.POST("/user/upgrade", controllers.Upgrade)
 		userAuthRoutes.POST("/user/downgrade", controllers.Downgrade)
+		userAuthRoutes.GET("/profile", controllers.GetProfile)
 
 	}
 	userRoutes := r.Group("/user")
