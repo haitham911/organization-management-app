@@ -6,12 +6,9 @@ definitions:
         type: string
       name:
         type: string
-      password:
-        type: string
     required:
     - invite_token
     - name
-    - password
     type: object
   controllers.AddSeatReq:
     properties:
@@ -48,13 +45,12 @@ definitions:
     properties:
       email:
         type: string
-      organization_id:
-        type: integer
+      role:
+        type: string
       stripe_subscription_id:
         type: string
     required:
     - email
-    - organization_id
     - stripe_subscription_id
     type: object
   controllers.RemoveUserReq:
@@ -161,6 +157,45 @@ paths:
       security:
       - Bearer: []
       summary: create organization
+      tags:
+      - organizations
+  /organizations/pending:
+    get:
+      consumes:
+      - application/json
+      description: Get the Organizations users
+      parameters:
+      - description: Organization Id
+        in: query
+        name: orgId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get the Organizations users
       tags:
       - organizations
   /organizations/subscription-info:
@@ -273,40 +308,7 @@ paths:
       summary: Get List Products With Prices
       tags:
       - product
-  /subscriptions:
-    post:
-      consumes:
-      - application/json
-      description: Create subscription
-      parameters:
-      - description: subscriptionRequest
-        in: body
-        name: subscription
-        required: true
-        schema:
-          $ref: '#/definitions/controllers.subscriptionRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Create subscription
-      tags:
-      - subscriptions
-  /subscriptions/accept-invite:
+  /subscription/accept-invite:
     post:
       consumes:
       - application/json
@@ -337,6 +339,79 @@ paths:
             additionalProperties: true
             type: object
       summary: Accept an invite to join the organization
+      tags:
+      - subscriptions
+  /subscriptions:
+    get:
+      consumes:
+      - application/json
+      description: Create subscription
+      parameters:
+      - description: Organization Id
+        in: query
+        name: orgId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: get subscription
+      tags:
+      - subscriptions
+    post:
+      consumes:
+      - application/json
+      description: Create subscription
+      parameters:
+      - description: Organization Id
+        in: query
+        name: orgId
+        required: true
+        type: integer
+      - description: subscriptionRequest
+        in: body
+        name: subscription
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.subscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Create subscription
       tags:
       - subscriptions
   /subscriptions/add-seat:
@@ -379,6 +454,11 @@ paths:
       description: Disable a user and remove their seat from the organization without
         deleting the user
       parameters:
+      - description: Organization Id
+        in: query
+        name: orgId
+        required: true
+        type: integer
       - description: Disable User
         in: body
         name: request
@@ -403,6 +483,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - Bearer: []
       summary: Disable a user and remove their seat from the organization
       tags:
       - subscriptions
@@ -447,6 +529,11 @@ paths:
       - application/json
       description: Send an invite to a user to join the organization
       parameters:
+      - description: Organization Id
+        in: query
+        name: orgId
+        required: true
+        type: integer
       - description: body
         in: body
         name: data
@@ -471,6 +558,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - Bearer: []
       summary: Send an invite to a user
       tags:
       - subscriptions

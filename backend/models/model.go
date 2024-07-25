@@ -53,18 +53,18 @@ type Product struct {
 	PriceAmount int64  `json:"price_amount"` // Price per user in cents
 }
 type Subscription struct {
-	ID                   uint `gorm:"primarykey"`
-	CreatedAt            time.Time
-	UpdatedAt            time.Time
-	UserID               *uint `json:"user_id"`
-	OrganizationID       *uint
-	PriceId              string
-	StripeSubscriptionID string `json:"stripe_subscription_id"`
-	Quantity             int    `json:"quantity"`                             // Number of users/seats
-	Active               *bool  `gorm:"not null;default:false" json:"active"` // Subscription active status
-	SubscriptionStatus   string
-	ProductID            uint `json:"product_id" binding:"required"`
-	UsageLimit           int  `json:"usage_limit" gorm:"default:0"` // Example usage limit
+	ID                   uint      `gorm:"primarykey" json:"ID,omitempty"`
+	CreatedAt            time.Time `json:"created_at,omitempty"`
+	UpdatedAt            time.Time `json:"updated_at,omitempty"`
+	UserID               *uint     `json:"user_id,omitempty"`
+	OrganizationID       *uint     `json:"organization_id,omitempty"`
+	PriceId              string    `json:"price_id,omitempty"`
+	StripeSubscriptionID string    `json:"stripe_subscription_id,omitempty"`
+	Quantity             int       `json:"quantity,omitempty"`                             // Number of users/seats
+	Active               *bool     `gorm:"not null;default:false" json:"active,omitempty"` // Subscription active status
+	SubscriptionStatus   string    `json:"subscription_status,omitempty"`
+	ProductID            uint      `json:"product_id,omitempty" binding:"required"`
+	UsageLimit           int       `json:"usage_limit,omitempty" gorm:"default:0"` // Example usage limit
 
 }
 
@@ -77,6 +77,7 @@ type UserInvite struct {
 	InviteToken          string `json:"invite_token"`
 	IsAccepted           bool   `json:"is_accepted"`
 	StripeSubscriptionID string `json:"stripe_subscription_id" binding:"required"`
+	Role                 string `json:"role"`
 }
 type UserWithRoles struct {
 	Role                    string       `json:"role"`

@@ -7,6 +7,7 @@ import (
 	"organization-management-app/config"
 	"organization-management-app/form"
 	"organization-management-app/models"
+	"organization-management-app/services"
 	"organization-management-app/utils"
 	"os"
 	"strconv"
@@ -19,7 +20,6 @@ import (
 	stripe "github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/invoice"
 	"github.com/stripe/stripe-go/v72/sub"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type CreateOrganizationReq struct {
@@ -405,8 +405,8 @@ func AddSeat(c *gin.Context) {
 
 type InviteReq struct {
 	Email                string `json:"email" binding:"required"`
-	OrganizationID       uint   `json:"organization_id" binding:"required"`
 	StripeSubscriptionID string `json:"stripe_subscription_id" binding:"required"`
+	Role                 string `json:"role"`
 }
 
 // SendInvite godoc
@@ -415,46 +415,75 @@ type InviteReq struct {
 // @Tags subscriptions
 // @Accept json
 // @Produce json
-//
+// @Security Bearer
+// @Param orgId query int  true "Organization Id"
 // @Param data body InviteReq true "body"
 // @Success 200 {object} map[string]any
 // @Failure 400 {object} map[string]any
 // @Failure 500 {object} map[string]any
 // @Router /subscriptions/send-invite [post]
 func SendInvite(c *gin.Context) {
-	var inviteRequest struct {
-		Email                string `json:"email" binding:"required"`
-		OrganizationID       uint   `json:"organization_id" binding:"required"`
-		StripeSubscriptionID string `json:"stripe_subscription_id" binding:"required"`
-	}
-
+	var inviteRequest InviteReq
 	if err := c.ShouldBindJSON(&inviteRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
+	orgID := c.Query("orgId")
+	if orgID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "orgId required"})
+		return
+	}
+	orgId, err := strconv.ParseUint(orgID, 10, 64)
+	if err != nil {
+		log.Println("error parse id from string", err)
+		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden orgID"})
+		c.Abort()
+		return
+	}
+	var org models.Organization
+	result := config.DB.Where("id=?", orgId).First(&org)
+	if result.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "organization not found"})
+		c.Abort()
+		return
+	}
+	var sub models.Subscription
+	result = config.DB.Where("organization_id=? and stripe_subscription_id=? ", orgId, inviteRequest.StripeSubscriptionID).First(&sub)
+	if result.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "organization subscription not found"})
+		c.Abort()
+		return
+	}
 	invite := models.UserInvite{
 		Email:                inviteRequest.Email,
-		OrganizationID:       inviteRequest.OrganizationID,
+		OrganizationID:       uint(orgId),
 		InviteToken:          uuid.New().String(),
 		IsAccepted:           false,
 		StripeSubscriptionID: inviteRequest.StripeSubscriptionID,
+		Role:                 inviteRequest.Role,
 	}
 
 	if err := config.DB.Create(&invite).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create invite"})
 		return
 	}
+	subject := fmt.Sprintf("Invitation from %s", org.Name)
+	baseUrl := utils.RemoveLastSlash(os.Getenv("FRONT_URL"))
 
-	// TODO: Send invite email to user with invite.InviteToken
-	fmt.Println(invite.InviteToken)
+	plainTextContent := "Click the link to to accept Invitation: " + baseUrl + "/accept-invite?token=" + invite.InviteToken
+	htmlContent := "<strong>Click the link to to accept Invitation: <a href=\"" + baseUrl + "/accept-invite?token=" + invite.InviteToken + "\">Login</a></strong>"
+
+	if err := services.SendEmail(invite.Email, subject, plainTextContent, htmlContent); err != nil {
+		c.JSON(http.StatusInternalServerError, form.ErrorResponse{Error: "Failed to send login email. email Services error" + err.Error()})
+
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"message": "Invite sent successfully"})
 }
 
 type AcceptInviteReq struct {
 	InviteToken string `json:"invite_token" binding:"required"`
 	Name        string `json:"name" binding:"required"`
-	Password    string `json:"password" binding:"required"`
 }
 
 // AcceptInvite godoc
@@ -467,12 +496,11 @@ type AcceptInviteReq struct {
 // @Success 200 {object} map[string]any
 // @Failure 400 {object} map[string]any
 // @Failure 500 {object} map[string]any
-// @Router /subscriptions/accept-invite [post]
+// @Router /subscription/accept-invite [post]
 func AcceptInvite(c *gin.Context) {
 	var acceptRequest struct {
 		InviteToken string `json:"invite_token" binding:"required"`
 		Name        string `json:"name" binding:"required"`
-		Password    string `json:"password" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&acceptRequest); err != nil {
@@ -486,16 +514,9 @@ func AcceptInvite(c *gin.Context) {
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(acceptRequest.Password), bcrypt.DefaultCost)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
-		return
-	}
-
 	user := models.User{
 		Email:            invite.Email,
 		Name:             acceptRequest.Name,
-		Password:         string(hashedPassword),
 		StripeCustomerID: "",
 	}
 	// Find the organization's subscription
@@ -506,7 +527,7 @@ func AcceptInvite(c *gin.Context) {
 	}
 	tx := config.DB.Begin()
 
-	if err := tx.Create(&user).Error; err != nil {
+	if err := tx.FirstOrCreate(&user).Where("email=?", invite.Email).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
@@ -517,6 +538,7 @@ func AcceptInvite(c *gin.Context) {
 		UserID:               user.ID,
 		OrganizationID:       invite.OrganizationID,
 		StripeSubscriptionID: subscription.StripeSubscriptionID,
+		Role:                 invite.Role,
 	}
 
 	if err := tx.Create(&userOrg).Error; err != nil {
@@ -626,7 +648,7 @@ func GetProratedCost(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"prorated_cost": prorationInvoice.Total, "invoice": prorationInvoice})
+	c.JSON(http.StatusOK, gin.H{"prorated_cost": prorationInvoice.Total / 100, "invoice": prorationInvoice})
 }
 
 // DisableUser godoc
@@ -635,6 +657,8 @@ func GetProratedCost(c *gin.Context) {
 // @Tags subscriptions
 // @Accept json
 // @Produce json
+// @Security Bearer
+// @Param orgId query int  true "Organization Id"
 // @Param request body DisableUserRequest true "Disable User"
 // @Success 200 {object} map[string]any
 // @Failure 400 {object} map[string]any
@@ -698,4 +722,37 @@ func DisableUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User disabled and seat removed successfully"})
+}
+
+// GetOrganizationsUsers Pending  users godoc
+// @Summary Get the Organizations users
+// @Description  Get the Organizations users
+// @Tags organizations
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param orgId query int  true "Organization Id"
+// @Success 200 {object} map[string]any
+// @Failure 400 {object} map[string]any
+// @Failure 404 {object} map[string]any
+// @Failure 500 {object} map[string]any
+// @Router /organizations/pending [get]
+func GetOrganizationsUsersPending(c *gin.Context) {
+	orgID := c.Query("orgId")
+	if orgID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "orgId required"})
+		return
+	}
+	orgId, err := strconv.ParseUint(orgID, 10, 64)
+	if err != nil {
+		log.Println("error parse id from string", err)
+		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden orgID"})
+		c.Abort()
+		return
+	}
+
+	var userInvite models.UserInvite
+	config.DB.Where("organization_id = ? and is_accepted = false", orgId).First(&userInvite)
+
+	c.JSON(http.StatusOK, userInvite)
 }
