@@ -78,7 +78,10 @@ func ParseToken(tokenString string, claim *Claims) (*jwt.Token, error) {
 	})
 }
 func GetProfileFromGinCtx(c *gin.Context) (*Claims, error) {
-	profile := c.MustGet("user")
+	profile, ok := c.Get("user")
+	if !ok {
+		return nil, errors.New("invalid user")
+	}
 	me, err := GetProfile(profile)
 	if err != nil {
 		return me, err

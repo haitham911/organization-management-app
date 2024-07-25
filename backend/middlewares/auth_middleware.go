@@ -7,6 +7,7 @@ import (
 	"organization-management-app/config"
 	"organization-management-app/models"
 	"organization-management-app/utils"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -52,16 +53,23 @@ func AdminOnly() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		orgID, ok := c.Get("orgRequest")
-		if !ok {
+		orgID := c.Query("orgId")
+		if orgID == "" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden orgID"})
+			c.Abort()
+			return
+		}
+		orgId, err := strconv.ParseUint(orgID, 10, 64)
+		if err != nil {
+			log.Println("error parse id from string", err)
 			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden orgID"})
 			c.Abort()
 			return
 		}
 		userOrgs := user.(*utils.Claims).Organizations
-		role := ""
+		role := "Member"
 		for _, v := range userOrgs {
-			if orgID.(uint) == v.Organization.ID {
+			if orgId == uint64(v.Organization.ID) {
 				role = v.Role
 				break
 			}
