@@ -2,9 +2,11 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"organization-management-app/config"
 	"organization-management-app/models"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stripe/stripe-go/v72"
@@ -22,12 +24,14 @@ type subscriptionRequest struct {
 	ProductID       uint   `json:"product_id" binding:"required"`
 }
 
-// AddSeat godoc
+// CreateSubscription godoc
 // @Summary Create subscription
 // @Description  Create subscription
 // @Tags subscriptions
 // @Accept json
 // @Produce json
+// @Security Bearer
+// @Param orgId query int  true "Organization Id"
 // @Param subscription body subscriptionRequest true "subscriptionRequest"
 // @Success 200 {object} map[string]any
 // @Failure 400 {object} map[string]any
@@ -101,9 +105,33 @@ func CreateSubscription(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"subscriptionId": subscription.ID})
 }
 
+// GetSubscriptions godoc
+// @Summary get subscription
+// @Description  Create subscription
+// @Tags subscriptions
+// @Accept json
+// @Security Bearer
+// @Produce json
+// @Param orgId query int  true "Organization Id"
+// @Success 200 {object} map[string]any
+// @Failure 400 {object} map[string]any
+// @Failure 500 {object} map[string]any
+// @Router /subscriptions [get]
 func GetSubscriptions(c *gin.Context) {
+	orgID := c.Query("orgId")
+	if orgID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "orgId required"})
+		return
+	}
+	orgId, err := strconv.ParseUint(orgID, 10, 64)
+	if err != nil {
+		log.Println("error parse id from string", err)
+		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden orgID"})
+		c.Abort()
+		return
+	}
 	var subscriptions []models.Subscription
-	config.DB.Find(&subscriptions)
+	config.DB.Where("organization_id  =?", orgId).Find(&subscriptions)
 	c.JSON(http.StatusOK, subscriptions)
 }
 

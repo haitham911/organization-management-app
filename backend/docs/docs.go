@@ -73,6 +73,65 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/pending": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get the Organizations users",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "organizations"
+                ],
+                "summary": "Get the Organizations users",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Organization Id",
+                        "name": "orgId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/subscription-info": {
             "get": {
                 "security": [
@@ -236,9 +295,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/subscriptions": {
+        "/subscription/accept-invite": {
             "post": {
-                "description": "Create subscription",
+                "description": "Accept an invite and create a user in the organization",
                 "consumes": [
                     "application/json"
                 ],
@@ -248,15 +307,15 @@ const docTemplate = `{
                 "tags": [
                     "subscriptions"
                 ],
-                "summary": "Create subscription",
+                "summary": "Accept an invite to join the organization",
                 "parameters": [
                     {
-                        "description": "subscriptionRequest",
-                        "name": "subscription",
+                        "description": "body",
+                        "name": "data",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controllers.subscriptionRequest"
+                            "$ref": "#/definitions/controllers.AcceptInviteReq"
                         }
                     }
                 ],
@@ -285,9 +344,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/subscriptions/accept-invite": {
-            "post": {
-                "description": "Accept an invite and create a user in the organization",
+        "/subscriptions": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Create subscription",
                 "consumes": [
                     "application/json"
                 ],
@@ -297,15 +361,72 @@ const docTemplate = `{
                 "tags": [
                     "subscriptions"
                 ],
-                "summary": "Accept an invite to join the organization",
+                "summary": "get subscription",
                 "parameters": [
                     {
-                        "description": "body",
-                        "name": "data",
+                        "type": "integer",
+                        "description": "Organization Id",
+                        "name": "orgId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Create subscription",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "Create subscription",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Organization Id",
+                        "name": "orgId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "subscriptionRequest",
+                        "name": "subscription",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controllers.AcceptInviteReq"
+                            "$ref": "#/definitions/controllers.subscriptionRequest"
                         }
                     }
                 ],
@@ -385,6 +506,11 @@ const docTemplate = `{
         },
         "/subscriptions/disable-user": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Disable a user and remove their seat from the organization without deleting the user",
                 "consumes": [
                     "application/json"
@@ -397,6 +523,13 @@ const docTemplate = `{
                 ],
                 "summary": "Disable a user and remove their seat from the organization",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Organization Id",
+                        "name": "orgId",
+                        "in": "query",
+                        "required": true
+                    },
                     {
                         "description": "Disable User",
                         "name": "request",
@@ -488,6 +621,11 @@ const docTemplate = `{
         },
         "/subscriptions/send-invite": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Send an invite to a user to join the organization",
                 "consumes": [
                     "application/json"
@@ -500,6 +638,13 @@ const docTemplate = `{
                 ],
                 "summary": "Send an invite to a user",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Organization Id",
+                        "name": "orgId",
+                        "in": "query",
+                        "required": true
+                    },
                     {
                         "description": "body",
                         "name": "data",
@@ -848,17 +993,13 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "invite_token",
-                "name",
-                "password"
+                "name"
             ],
             "properties": {
                 "invite_token": {
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "password": {
                     "type": "string"
                 }
             }
@@ -914,15 +1055,14 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
-                "organization_id",
                 "stripe_subscription_id"
             ],
             "properties": {
                 "email": {
                     "type": "string"
                 },
-                "organization_id": {
-                    "type": "integer"
+                "role": {
+                    "type": "string"
                 },
                 "stripe_subscription_id": {
                     "type": "string"
