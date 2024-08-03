@@ -756,3 +756,24 @@ func GetOrganizationsUsersPending(c *gin.Context) {
 
 	c.JSON(http.StatusOK, userInvite)
 }
+
+// GetOrganizations users godoc
+// @Summary Get the Organizations 
+// @Description  Get the Organizations 
+// @Tags organizations
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]any
+// @Failure 400 {object} map[string]any
+// @Failure 404 {object} map[string]any
+// @Failure 500 {object} map[string]any
+// @Router /all/organization [get]
+func GetOrganizations(c *gin.Context) {
+	
+	var organization []models.Organization
+	if err := config.DB.Find(&organization).Error; err != nil {
+		c.JSON(http.StatusNotFound, form.ErrorResponse{Error: "Organization not found"})
+		return
+	}
+	c.JSON(http.StatusOK, organization)
+}

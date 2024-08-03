@@ -63,7 +63,7 @@ type Subscription struct {
 	Quantity             int       `json:"quantity,omitempty"`                             // Number of users/seats
 	Active               *bool     `gorm:"not null;default:false" json:"active,omitempty"` // Subscription active status
 	SubscriptionStatus   string    `json:"subscription_status,omitempty"`
-	ProductID            uint      `json:"product_id,omitempty" binding:"required"`
+	ProductID            string      `json:"product_id,omitempty" binding:"required"`
 	UsageLimit           int       `json:"usage_limit,omitempty" gorm:"default:0"` // Example usage limit
 
 }

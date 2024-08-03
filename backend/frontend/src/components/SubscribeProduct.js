@@ -26,7 +26,7 @@ const SubscribeProduct = () => {
 
     const fetchOrganizations = async () => {
       try {
-        const response = await axios.get('/organizations');
+        const response = await axios.get('/all/organization');
         setOrganizations(response.data);
       } catch (error) {
         console.error('Error fetching organizations:', error);

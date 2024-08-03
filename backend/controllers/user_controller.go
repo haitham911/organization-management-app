@@ -131,7 +131,7 @@ func CreateUserFreeSubscription(c *gin.Context) {
 		Password   string `json:"password" binding:"required"`
 		Role       string `json:"role" binding:"required"`
 		UsageLimit int    `json:"usage_limit" binding:"required"`
-		ProductID  uint   `json:"product_id" binding:"required"`
+		ProductID  string   `json:"product_id" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&userRequest); err != nil {
@@ -185,7 +185,7 @@ func CreateUserWithSubscription(c *gin.Context) {
 		Password             string `json:"password" binding:"required"`
 		Role                 string `json:"role" binding:"required"`
 		UsageLimit           int    `json:"usage_limit" binding:"required"`
-		ProductID            uint   `json:"product_id" binding:"required"`
+		ProductID            string   `json:"product_id" binding:"required"`
 		PriceID              string `json:"price_id" binding:"required"`
 		PaymentMethodID      string `json:"payment_method_id" binding:"required"`
 		StripeSubscriptionID string `json:"stripe_subscription_id"`
@@ -295,7 +295,7 @@ func Upgrade(c *gin.Context) {
 		UserID          *uint  `json:"user_id"`
 		PriceID         string `json:"price_id" binding:"required"`
 		PaymentMethodID string `json:"payment_method_id" binding:"required"`
-		ProductID       uint   `json:"product_id" binding:"required"`
+		ProductID       string   `json:"product_id" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&upgradeRequest); err != nil {
@@ -388,7 +388,7 @@ func Downgrade(c *gin.Context) {
 	var downgradeRequest struct {
 		UserID               *uint  `json:"user_id"`
 		StripeSubscriptionID string `json:"stripe_subscription_id" binding:"required"`
-		ProductID            uint   `json:"product_id" binding:"required"`
+		ProductID            string   `json:"product_id" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&downgradeRequest); err != nil {
@@ -435,7 +435,7 @@ func DowngradeOrganizationSubscription(c *gin.Context) {
 	var downgradeRequest struct {
 		OrganizationID       uint   `json:"organization_id" binding:"required"`
 		StripeSubscriptionID string `json:"stripe_subscription_id" binding:"required"`
-		ProductID            uint   `json:"product_id" binding:"required"`
+		ProductID            string   `json:"product_id" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&downgradeRequest); err != nil {

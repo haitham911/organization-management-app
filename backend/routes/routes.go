@@ -19,8 +19,8 @@ func RegisterOrganizationRoutes(r *gin.RouterGroup) {
 		organizationRoutes.GET("/pending", controllers.GetOrganizationsUsersPending)
 		organizationRoutes.GET("/subscription-info", controllers.GetOrganizationSubscriptionInfo)
 	}
-
 }
+
 func RegisterUserRoutes(r *gin.RouterGroup) {
 	userAuthRoutes := r.Group("/users")
 	{
