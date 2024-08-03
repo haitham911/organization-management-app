@@ -11,6 +11,51 @@
     },
     "basePath": "/api/v1",
     "paths": {
+        "/all/organization": {
+            "get": {
+                "description": "Get the Organizations",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "organizations"
+                ],
+                "summary": "Get the Organizations",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/organization": {
             "post": {
                 "security": [
@@ -1097,7 +1142,7 @@
                     "example": "price_1PVoH4Lq8P7MVUmbz4NnEDsW"
                 },
                 "product_id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "quantity": {
                     "type": "integer",

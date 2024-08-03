@@ -50,6 +50,7 @@ func main() {
 	// Register API routes
 	r.Use(CORSMiddleware()) // this middleware should be applied first so that the auth middleware don't block requests
 	v1 := r.Group("/api/v1")
+	// v1.GET("/all/organization",controllers.GetOrganizations)
 	routes.RegisterOrganizationRoutes(v1)
 	routes.RegisterUserRoutes(v1)
 	routes.RegisterProductRoutes(v1)

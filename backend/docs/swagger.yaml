@@ -73,7 +73,7 @@ definitions:
         example: price_1PVoH4Lq8P7MVUmbz4NnEDsW
         type: string
       product_id:
-        type: integer
+        type: string
       quantity:
         example: 1
         type: integer
@@ -124,6 +124,37 @@ info:
   title: organization management
   version: "1.0"
 paths:
+  /all/organization:
+    get:
+      consumes:
+      - application/json
+      description: Get the Organizations
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get the Organizations
+      tags:
+      - organizations
   /organization:
     post:
       consumes:

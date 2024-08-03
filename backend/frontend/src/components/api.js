@@ -2,6 +2,9 @@ import axios from 'axios';
 
 const instance = axios.create({
   baseURL: "http://localhost:5000/api/v1",
+  headers: {
+    'Authorization': `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbCI6Imtib3V3QGhleS5jb20iLCJVc2Vyc1N1YnNjcmlwdGlvbnMiOm51bGwsIm9yZ2FuaXphdGlvbnMiOlt7InJvbGUiOiJBZG1pbiIsIm9yZ2FuaXphdGlvbiI6eyJJRCI6MSwiY3JlYXRlZF9hdCI6IjIwMjQtMDgtMDNUMjA6Mzk6MjguNzQxMzAxKzAzOjAwIiwidXBkYXRlZF9hdCI6IjIwMjQtMDgtMDNUMjA6Mzk6MjguNzQxMzAxKzAzOjAwIiwibmFtZSI6Im5vdGlvbiB0aGVvcnkiLCJlbWFpbCI6Imtib3V3QGhleS5jb20iLCJzdHJpcGVfY3VzdG9tZXJfaWQiOiJjdXNfUWF4ckFDVDV2TmpOU2siLCJ1c2VycyI6bnVsbCwic3Vic2NyaXB0aW9ucyI6bnVsbH0sIm9yZ19zdWJzY3JpcHRpb25faWQiOiIifV0sImV4cCI6MTcyMzkxOTM1Mn0.AofSI3rKdc9br8O3g5fi00-hs4ENW4ptPEPYbXxwZ0U`
+  }
 });
 
 export default instance;

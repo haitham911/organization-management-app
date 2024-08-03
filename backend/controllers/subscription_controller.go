@@ -21,7 +21,7 @@ type subscriptionRequest struct {
 	PriceID         string `json:"price_id" binding:"required" example:"price_1PVoH4Lq8P7MVUmbz4NnEDsW"`
 	Quantity        int    `json:"quantity" binding:"required" example:"1"`
 	PaymentMethodID string `json:"payment_method_id" binding:"required"`
-	ProductID       uint   `json:"product_id" binding:"required"`
+	ProductID       string   `json:"product_id" binding:"required"`
 }
 
 // CreateSubscription godoc

@@ -56,9 +56,9 @@ const CheckoutForm = ({
     }
 
     try {
-      const response = await axios.post('/subscriptions', {
+      const response = await axios.post('/subscriptions?orgId=1', {
         organization_id: Number(selectedOrganization),
-        product_id: Number(selectedProduct),
+        product_id: "1",
         price_id: selectedPrice,
         quantity: Number(quantity),
         payment_method_id: paymentMethodId,
